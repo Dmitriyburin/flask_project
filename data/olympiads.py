@@ -10,11 +10,11 @@ class Olympiads(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'olympiads'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    # team_leader = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=True)
-    # team_lead = orm.relation('User')
 
-    subject_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("subjects.id"), nullable=True)
-    subject = orm.relation('Subjects')
+    # subject_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("subjects.id"), nullable=True)
+    subjects = orm.relation("Subjects",
+                            secondary="olympiads_to_subjects",
+                            backref="olympiads")
 
     title = sqlalchemy.Column(sqlalchemy.String(35), nullable=True)
     school_class = sqlalchemy.Column(sqlalchemy.String(35), nullable=True)
@@ -22,4 +22,3 @@ class Olympiads(SqlAlchemyBase, SerializerMixin):
     duration = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
     link = sqlalchemy.Column(sqlalchemy.String(35), nullable=True)
     date = sqlalchemy.Column(sqlalchemy.String(35), nullable=True, default=datetime.date.today())
-

@@ -5,7 +5,7 @@ from flask_restful import Api
 from data import db_session, olympiads_resource, users_resources
 from data.olympiads import Olympiads
 from data.users import User
-from data.users_resources import UsersListResource
+from data.olympiads_resource import OlympiadsResource, OlympiadsListResource
 
 from forms.user import RegisterForm, LoginForm
 
@@ -19,6 +19,7 @@ api = Api(app)
 
 SUBJECTS = ['Математика', 'Информатика', 'Физика', 'Химия', 'Русский язык']
 ADMINS = ['123@123']
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -95,16 +96,30 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-
         db_sess = db_session.create_session()
-        print(form.email)
         user = db_sess.query(User).filter(User.email == form.email.data).first()
-        print(user, form.password, user.check_password(password=form.password.data))
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
     return render_template("register.html", url_style=url_style, form=form, authorization='Вход',
                            current_user=current_user)
+
+
+@app.route("/add_subject/<int:olympiad_id>", methods=['GET', 'POST'])
+def add_subject(olympiad_id):
+    url_style = url_for('static', filename='css/style.css')
+    OlympiadsResource().add_subject(olympiad_id, 1)
+    return 'ок'
+    # form = LoginForm()
+    #
+    # if form.validate_on_submit():
+    #     db_sess = db_session.create_session()
+    #     user = db_sess.query(User).filter(User.email == form.email.data).first()
+    #     if user and user.check_password(form.password.data):
+    #         login_user(user, remember=form.remember_me.data)
+    #         return redirect("/")
+    # return render_template("register.html", url_style=url_style, form=form, authorization='Вход',
+    #                        current_user=current_user)
 
 
 if __name__ == '__main__':

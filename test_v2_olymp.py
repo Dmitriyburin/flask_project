@@ -14,7 +14,7 @@ from requests import get, post, delete, put
 #
 # Корректный запрос на добавления пользователя
 print(post('http://127.0.0.1:5000/api/v2/olympiads',
-           json={'subject_id': 1,
+           json={
                  'title': 'КРУТОТЕНЬ',
                  'school_class': 9,
                  'description': '1, 2, 3',

@@ -4,6 +4,7 @@ from flask_restful import abort, Resource
 from . import db_session
 from .olympiads import Olympiads
 from .olympiads_reqparse import parser
+from .olympiads_to_subjects import Subjects
 
 
 def abort_if_olympiad_not_found(olympiad_id):
@@ -46,6 +47,23 @@ class OlympiadsResource(Resource):
         session.commit()
         return jsonify({'success': 'OK'})
 
+    def add_subject(self, olympiad_id, subject_id):
+        abort_if_olympiad_not_found(olympiad_id)
+        session = db_session.create_session()
+        olympiad = session.query(Olympiads).get(olympiad_id)
+        subject = session.query(Subjects).get(subject_id)
+        olympiad.subjects.append(subject)
+        print(olympiad, subject, olympiad.subjects[0].name, olympiad.subjects)
+        return jsonify({'success': 'OK'})
+
+    def delete_subject(self, olympiad_id, subject_id):
+        abort_if_olympiad_not_found(olympiad_id)
+        session = db_session.create_session()
+        olympiad = session.query(Olympiads).get(olympiad_id)
+        subject = session.query(Subjects).get(subject_id)
+        olympiad.subjects.remove(subject)
+        return jsonify({'success': 'OK'})
+
 
 class OlympiadsListResource(Resource):
     def get(self):
@@ -60,7 +78,6 @@ class OlympiadsListResource(Resource):
         session = db_session.create_session()
         print(args)
         job = Olympiads(
-            subject_id=args['subject_id'],
             title=args['title'],
             school_class=args['school_class'],
             description=args['description'],
@@ -68,8 +85,6 @@ class OlympiadsListResource(Resource):
             link=args['link'],
             date=args['date']
         )
-
-
 
         print(session.add(job))
         session.commit()

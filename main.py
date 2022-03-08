@@ -5,6 +5,7 @@ from flask_restful import Api
 from data import db_session, olympiads_resource, users_resources
 from data.olympiads import Olympiads
 from data.users import User
+from data.subjects import Subjects
 from data.users_resources import UsersListResource
 
 from forms.user import RegisterForm, LoginForm
@@ -19,6 +20,7 @@ api = Api(app)
 
 SUBJECTS = ['Математика', 'Информатика', 'Физика', 'Химия', 'Русский язык']
 ADMINS = ['123@123']
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -68,7 +70,8 @@ def subject(subject):
     db_sess = db_session.create_session()
     olympiads = db_sess.query(Olympiads).all()
     if subject != 'all':
-        olympiads = db_sess.query(Olympiads).filter(Olympiads.subject.like(f'%{subject}%')).all()
+        subject_id = db_sess.query(Subjects).filter(Subjects.name == subject).first().id
+        olympiads = db_sess.query(Olympiads).filter(Olympiads.subject_id == subject_id).all()
     print(olympiads)
     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS)
 

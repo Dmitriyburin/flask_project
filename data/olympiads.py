@@ -21,5 +21,6 @@ class Olympiads(SqlAlchemyBase, SerializerMixin):
     description = sqlalchemy.Column(sqlalchemy.Text)
     duration = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
     link = sqlalchemy.Column(sqlalchemy.String(35), nullable=True)
+    # stages = orm.relation('Stages')
     date = sqlalchemy.Column(sqlalchemy.String(35), nullable=True, default=datetime.date.today())
 

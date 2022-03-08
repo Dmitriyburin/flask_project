@@ -8,9 +8,9 @@
             <div class="card main-card">
                 <div class="card-body">
                     <h6 class="card-subtitle mb-1 text-muted">{{ olymp.subject.name }} - {{ olymp.school_class }} класс - {{ olymp.date }}</h6>
-                    <h5 class="card-title">{{ olymp.title }}</h5>
-                    <p class="card-text">{{ olymp.description}}</p>
-                    <a href="/olympiad/{{ olymp.id }}" class="btn btn-primary">Подробнее</a>
+                    <a href="/olympiad/{{ olymp.id }}" class="card-title h5">{{ olymp.title }}</a>
+                    <!-- <p class="card-text">{{ olymp.description}}</p> -->
+                    <!-- <a href="/olympiad/{{ olymp.id }}" class="btn btn-primary">Подробнее</a> -->
                     
 
                     {% if current_user.email in admins %}

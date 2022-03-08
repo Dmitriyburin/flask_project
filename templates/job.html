@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="h1-job">Add\Edit a Job</h1>
+    <form action="" method="post" novalidate>
+        <div>
+            {{ form.csrf_token }}
+        </div>
+        
+        {% for field in form if field.name not in ['csrf_token', 'submit', 'is_finished'] %}
+           
+            <div class="form-outline form">
+                <label class="form-label" for="form12">{{ field.label() }}</label>
+                {{ field(class='form-control', id='form1', type='text') }}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <div class="form-check form">
+            {{ form.is_finished(class="form-check-input", type="checkbox", id='finish')}}
+            <label class="form-check-label" for="finish">
+            {{ form.is_finished.name }}
+            </label>
+        </div>
+        {{ form.submit(class='btn btn-primary btn-main form')}}
+    </form>
+</div>
+
+{% endblock %}

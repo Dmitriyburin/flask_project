@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+<div class="container">
+    <main>
+        <div class="row">
+            <div class="col-3 fixe">
+                <nav id="sidebar">
+                    <div class="sidebar-header">
+                        <h3>Олимпиады</h3>
+                    </div>
+                    <ul class="list-unstyled components nav-subjects">
+                        <li class="nav-subj active" onclick="location.href='/subjects/all';" >
+                            <a href='/subjects/all' class='nav-a'>Все предметы</a>
+                        </li>
+                        {% for sub in subjects %}
+                            <li class="nav-subj" onclick="location.href='/subjects/{{ sub }}';" >
+                                <a href='/subjects/{{ sub }}' class='nav-a'>{{ sub }}</a>
+                            </li>
+                        {% endfor %}
+                        
+                    </ul>
+                </nav>
+                <!-- <form action="" method="post" name="class" novalidate>
+                    <div>
+                         class_form.csrf_token 
+                    </div>
+                    <div class="input-group mb-3">
+  
+
+                        {% for field in class_form if field.name != 'csrf_token' and field.name != 'submit' %}
+                                field(class="form-control", type="number", placeholder="Номер класса")
+                                
+                        {% endfor %}
+                        class_form.submit(class='btn btn-outline-secondary btn-main')
+                        
+                        
+
+                    </div>
+                </form> -->
+            
+            </div>
+            {% block main_content %}{% endblock %}
+
+        </div>
+    </main>
+</div>
+<script type="text/javascript" src="../static//js//script.js"></script>
+
+{% endblock %}

@@ -3,27 +3,28 @@
 {% block main_content %}
             
     <div class="col main-content">
-        
         {% for olymp in olympiads %}
-            <div class="card main-card">
+            <div class="card mb-2">
                 <div class="card-body">
-                    <h6 class="card-subtitle mb-1 text-muted">{{ olymp.subject.name }} - {{ olymp.school_class }} класс - {{ olymp.date }}</h6>
-                    <h5 class="card-title">{{ olymp.title }}</h5>
+                    <h6 class="card-subtitle mb-1 text-muted">{{ (olymp.subjects | map(attribute='name')) | join(', ') }} | {{ [olymp.school_classes[0], olymp.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
+                    <a href='/olympiad/{{ olymp.id }}' class="card-title">{{ olymp.title }}</a>
                     <p class="card-text">{{ olymp.description}}</p>
-                    <a href="/olympiad/{{ olymp.id }}" class="btn btn-primary">Подробнее</a>
+                    <!-- <a href="/olympiad/{{ olymp.id }}" class="btn btn-primary">Подробнее</a> -->
                     
-
-                    {% if current_user.email in admins %}
+    
+                    <!-- {% if current_user.email in admins %}
                         <a href="/olympiad-change/{{ olymp.id }}" 
                         type="button" class="btn btn-warning" >Изменить</a>
                         </a>
                         <a href="/olympiad-delete/{{ olymp.id }}" 
                         type="button" class="btn btn-danger"  >Удалить</a>
                         </a>
-                    {% endif %}
+                    {% endif %} -->
                 </div>
             </div>
+
         {% endfor %}
+
         {% set len_olymps = olympiads | length%}
         {% if not len_olymps: %}
             <div class="alert alert-info" role="alert">

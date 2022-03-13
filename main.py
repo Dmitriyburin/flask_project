@@ -6,6 +6,8 @@ from data import db_session, olympiads_resource, users_resources
 from data.olympiads import Olympiads
 from data.users import User
 from data.olympiads_resource import OlympiadsResource, OlympiadsListResource
+from data.olympiads_to_subjects import Subjects
+from data.olympiads_resource import add_olymps_to_database, add_subject_api, delete_subject_api
 
 from forms.user import RegisterForm, LoginForm
 
@@ -17,7 +19,12 @@ login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 api = Api(app)
 
-SUBJECTS = ['Математика', 'Информатика', 'Физика', 'Химия', 'Русский язык']
+SUBJECTS = {'Математика': 1,
+            'Информатика': 2,
+            'Физика': 1,
+            'Химия': 1,
+            'Русский язык': 1
+            }
 ADMINS = ['123@123']
 
 
@@ -60,6 +67,7 @@ def olympiad(olymp_id):
     url_style = url_for('static', filename='css/style.css')
     db_sess = db_session.create_session()
     olympiad = [db_sess.query(Olympiads).get(olymp_id)]
+
     return render_template("index.html", olympiads=olympiad, url_style=url_style, subjects=SUBJECTS)
 
 
@@ -69,7 +77,10 @@ def subject(subject):
     db_sess = db_session.create_session()
     olympiads = db_sess.query(Olympiads).all()
     if subject != 'all':
-        olympiads = db_sess.query(Olympiads).filter(Olympiads.subject.like(f'%{subject}%')).all()
+        subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
+        olympiads = subject.olympiads if subject is not None else []
+        # olympiads = db_sess.query(olympiads_to_subjects_table).filter(
+        #     olympiads_to_subjects_table.subject_id.like(f'%{SUBJECTS[subject]}%')).all()
     print(olympiads)
     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS)
 
@@ -86,6 +97,9 @@ def register():
                          'password': form.password.data,
                          'name': form.name.data,
                          'school_class': form.school_class.data}).json())
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        login_user(user)
         return redirect('/')
     return render_template("register.html", url_style=url_style, form=form, authorization='Регистрация')
 
@@ -107,19 +121,15 @@ def login():
 
 @app.route("/add_subject/<int:olympiad_id>", methods=['GET', 'POST'])
 def add_subject(olympiad_id):
-    url_style = url_for('static', filename='css/style.css')
-    OlympiadsResource().add_subject(olympiad_id, 1)
-    return 'ок'
-    # form = LoginForm()
-    #
-    # if form.validate_on_submit():
-    #     db_sess = db_session.create_session()
-    #     user = db_sess.query(User).filter(User.email == form.email.data).first()
-    #     if user and user.check_password(form.password.data):
-    #         login_user(user, remember=form.remember_me.data)
-    #         return redirect("/")
-    # return render_template("register.html", url_style=url_style, form=form, authorization='Вход',
-    #                        current_user=current_user)
+    add_olymps_to_database()
+    # add_subject_api(olympiad_id, 1)
+    return 'ok'
+
+
+@app.route("/delete_subject/<int:olympiad_id>", methods=['GET', 'POST'])
+def delete_subject(olympiad_id):
+    delete_subject_api(olympiad_id, 1)
+    return 'ok'
 
 
 if __name__ == '__main__':

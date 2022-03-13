@@ -1,120 +1,14 @@
 body {
-    font-family: 'Open Sans', sans-serif;
-    font-family: 'Rubik', sans-serif;
+  font-family: "Rubik", sans-serif;
 }
 
-h1, h2, h3, h4, p {
-    margin: 0;
-    padding: 0;
+header {
+  margin-bottom: 75px;
 }
 
-a, a:hover, a:focus {
-    color: inherit;
-    text-decoration: none;
-    transition: all 0.3s;
+.block {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 15px;
 }
-
-.wrapper {
-    display: flex;
-    align-items: stretch;
-}
-
-.header{
-    position: fixed;
-    left: 0;
-    top: 0;
-}
-
-.nav-link.active {
-    border-bottom: 1px solid black;
-}
-
-
-#sidebar.active {
-    margin-left: -250px;
-}
-
-.nav-subjects {
-    margin-top: 10px;
-    background-color: #25215f;
-    color: #fff;
-    border-radius: 15px;
-    padding: 10px 5px 10px 10px;
-}
-
-.nav-subj {
-    padding: 7px 7px;
-    border-radius: 15px;
-    cursor: pointer;
-}
-
-.nav-subj:hover {
-    background-color: #342f7973;
-}
-
-.nav-subj.active {
-    background-color: #342f79;
-    margin: 5px 0;
-}
-
-.input-class {
-    width: 100px;
-}
-
-.main {
-    /* padding-top: 150px; */
-}
-
-.main-content {
-    border-left: 1px solid #ced3d6;
-}
-
-.main-card {
-    margin-bottom: 15px;
-}
-
-.container-register {
-    width: 500px;
-    margin: 0 auto;
-    padding: 20px 40px 40px 40px;
-    background-color: #25215f;
-    border-radius: 0 0 15px 15px;
-}
-
-.label-register {
-    width: 500px;
-    padding: 15px 0;
-    margin: 0 auto;
-    background-color: #342f79;
-    border-radius: 15px 15px 0 0;
-
-
-}
-
-
-.p-register {
-    color: #fff;
-    text-align: center;
-    font-size: 35px;
-}
-
-.btn-register {
-    background-color: #342f79;
-    border: none;
-    width: 30%;
-    right: 10%;
-}
-
-.button-register-div {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.form-register {
-
-    margin-top: 30px;
-}
-
-.field-register {
-    padding: 12px
-}
+/*# sourceMappingURL=style.css.map */

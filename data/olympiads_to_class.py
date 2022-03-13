@@ -5,21 +5,21 @@ from sqlalchemy.orm import relationship
 
 from .db_session import SqlAlchemyBase
 
-olympiads_to_subjects_table = sqlalchemy.Table('olympiads_to_subjects', SqlAlchemyBase.metadata,
+olympiads_to_subjects_table = sqlalchemy.Table('olympiads_to_classes', SqlAlchemyBase.metadata,
                                                sqlalchemy.Column('olympiad_id', sqlalchemy.Integer,
                                                                  sqlalchemy.ForeignKey('olympiads_table.id'),
                                                                  primary_key=True),
-                                               sqlalchemy.Column('subject_id', sqlalchemy.Integer,
-                                                                 sqlalchemy.ForeignKey('subjects_table.id'),
+                                               sqlalchemy.Column('class_id', sqlalchemy.Integer,
+                                                                 sqlalchemy.ForeignKey('school_classes_table.id'),
                                                                  primary_key=True)
                                                )
 
 
-class Subjects(SqlAlchemyBase, SerializerMixin):
-    __tablename__ = 'subjects_table'
+class SchoolClasses(SqlAlchemyBase, SerializerMixin):
+    __tablename__ = 'school_classes_table'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    name = sqlalchemy.Column(sqlalchemy.String(35), nullable=True)
+    number = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
     olympiads = relationship("Olympiads",
-                             secondary="olympiads_to_subjects",
-                             back_populates="subjects")
+                             secondary="olympiads_to_classes",
+                             back_populates="school_classes")

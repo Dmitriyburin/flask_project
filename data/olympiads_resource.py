@@ -4,7 +4,11 @@ from flask_restful import abort, Resource
 from . import db_session
 from .olympiads import Olympiads
 from .olympiads_reqparse import parser
-from .olympiads_to_subjects import Subjects
+from .olympiads_to_subjects import Subjects, olympiads_to_subjects_table
+from .olympiads_to_class import SchoolClasses
+from .parser import full_pars_olymp
+
+from pprint import pprint
 
 
 def abort_if_olympiad_not_found(olympiad_id):
@@ -47,23 +51,6 @@ class OlympiadsResource(Resource):
         session.commit()
         return jsonify({'success': 'OK'})
 
-    def add_subject(self, olympiad_id, subject_id):
-        abort_if_olympiad_not_found(olympiad_id)
-        session = db_session.create_session()
-        olympiad = session.query(Olympiads).get(olympiad_id)
-        subject = session.query(Subjects).get(subject_id)
-        olympiad.subjects.append(subject)
-        print(olympiad, subject, olympiad.subjects[0].name, olympiad.subjects)
-        return jsonify({'success': 'OK'})
-
-    def delete_subject(self, olympiad_id, subject_id):
-        abort_if_olympiad_not_found(olympiad_id)
-        session = db_session.create_session()
-        olympiad = session.query(Olympiads).get(olympiad_id)
-        subject = session.query(Subjects).get(subject_id)
-        olympiad.subjects.remove(subject)
-        return jsonify({'success': 'OK'})
-
 
 class OlympiadsListResource(Resource):
     def get(self):
@@ -77,7 +64,7 @@ class OlympiadsListResource(Resource):
         args = parser.parse_args()
         session = db_session.create_session()
         print(args)
-        job = Olympiads(
+        olymp = Olympiads(
             title=args['title'],
             school_class=args['school_class'],
             description=args['description'],
@@ -86,10 +73,63 @@ class OlympiadsListResource(Resource):
             date=args['date']
         )
 
-        print(session.add(job))
+        print(session.add(olymp))
         session.commit()
         return jsonify({'success': 'OK'})
 
+
+def add_olymps_to_database():
+    session = db_session.create_session()
+    olymps = full_pars_olymp()
+    pprint(olymps)
+    for olymp_dict in olymps:
+        olymp = Olympiads(
+            title=olymp_dict['title'],
+            # school_class=', '.join(olymp_dict['school_class']),
+            description='описание',
+            duration=120,
+            link='ссылка',
+        )
+        for sub in olymp_dict['subject']:
+            subject = session.query(Subjects).filter(Subjects.name.like(f'%{sub.lower()}%')).first()
+            if subject:
+                olymp.subjects.append(subject)
+
+        school_classes = [session.query(SchoolClasses).filter(SchoolClasses.number == sch_cl).first()
+                          for sch_cl in range(olymp_dict['school_class'][0], olymp_dict['school_class'][-1] + 1)]
+        for school_class in school_classes:
+            olymp.school_classes.append(school_class)
+
+        session.add(olymp)
+        session.commit()
+
+
+def add_subject_api(olympiad_id, subject_id):
+    abort_if_olympiad_not_found(olympiad_id)
+    session = db_session.create_session()
+
+    olympiad = session.query(Olympiads).get(olympiad_id)
+    subject = session.query(Subjects).get(subject_id)
+
+    olympiad.subjects.append(subject)
+    session.commit()
+    return jsonify({'success': 'OK'})
+
+
+def delete_subject_api(olympiad_id, subject_id):
+    abort_if_olympiad_not_found(olympiad_id)
+    session = db_session.create_session()
+
+    olympiad = session.query(Olympiads).get(olympiad_id)
+    subject = session.query(Subjects).get(subject_id)
+
+    olympiad.subjects.remove(subject)
+    session.commit()
+    return jsonify({'success': 'OK'})
+
+
+if __name__ == '__main__':
+    add_olymps_to_database()
 
 """
 @blueprint.route('/api/users/<int:users_id>', methods=['PUT'])

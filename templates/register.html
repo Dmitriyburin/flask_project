@@ -2,28 +2,27 @@
 
 {% block content %}
 
-<div class="label-register">
+
+<div class="container">
+    <div class="label-register">
         <p class="p-register">{{ authorization }}</p>
-</div>
-<div class="container-register">
+    </div>
     <form action="" method="post" novalidate>
         <div>
             {{ form.csrf_token }}
         </div>
         {% for field in form if field.name not in ['csrf_token', 'submit', 'remember_me'] %}
 
-            <div class="form-outline form form-register">
+            <div class="form-outline mb-4">
                 <!-- <label class="form-label" for="form12">{{ field.label() }}</label> -->
                 {{ field(class='form-control field-register', id='form1', type='text', placeholder=field.label().striptags()) }}
-                {% for error in field.errors %}
-                    <div class="alert alert-danger">{{ error }}</div>
-                {% endfor %}
+    
             </div>
+            {% for error in field.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+            {% endfor %}
         {% endfor %}
-        <div class="button-register-div">
-            {{ form.submit(class='btn btn-primary btn-register form-register')}}
-
-        </div>
+        {{ form.submit(class='btn btn-primary', value=authorization)}}
     </form>
 </div>
 

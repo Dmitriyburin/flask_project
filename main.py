@@ -13,6 +13,7 @@ from forms.user import RegisterForm, LoginForm
 
 from requests import get, post
 
+
 app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -117,19 +118,6 @@ def login():
             return redirect("/")
     return render_template("register.html", url_style=url_style, form=form, authorization='Вход',
                            current_user=current_user)
-
-
-@app.route("/add_subject/<int:olympiad_id>", methods=['GET', 'POST'])
-def add_subject(olympiad_id):
-    add_olymps_to_database()
-    # add_subject_api(olympiad_id, 1)
-    return 'ok'
-
-
-@app.route("/delete_subject/<int:olympiad_id>", methods=['GET', 'POST'])
-def delete_subject(olympiad_id):
-    delete_subject_api(olympiad_id, 1)
-    return 'ok'
 
 
 if __name__ == '__main__':

@@ -1,10 +1,17 @@
+import datetime
+
 from flask import Flask, render_template, url_for, redirect
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_restful import Api
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+from flask_admin import Admin
+from flask_admin.contrib.sqlamodel import ModelView
 
 from data import db_session, olympiads_resource, users_resources
 from data.olympiads import Olympiads
-from data.users import User
+from data.users import Users
 from data.olympiads_resource import OlympiadsResource, OlympiadsListResource
 from data.olympiads_to_subjects import Subjects
 from data.olympiads_resource import add_olymps_to_database, add_subject_api, delete_subject_api
@@ -13,12 +20,20 @@ from forms.user import RegisterForm, LoginForm
 
 from requests import get, post
 
-
 app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 api = Api(app)
+
+
+admin = Admin(app, name='admin', template_mode='bootstrap4')
+admin.add_view(ModelView(Users, db_session))
+
+
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 SUBJECTS = {'Математика': 1,
             'Информатика': 2,
@@ -32,7 +47,7 @@ ADMINS = ['123@123']
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
-    return db_sess.query(User).get(user_id)
+    return db_sess.query(Users).get(user_id)
 
 
 @app.route('/logout')
@@ -63,13 +78,32 @@ def index():
                            current_user=current_user, admins=ADMINS)
 
 
+@app.route("/favorite_olympiads")
+def fav_olymps():
+    if current_user:
+        url_style = url_for('static', filename='css/style.css')
+        olympiads = current_user.olympiads
+        return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS,
+                               current_user=current_user, admins=ADMINS)
+
+
 @app.route("/olympiad/<int:olymp_id>")
 def olympiad(olymp_id):
     url_style = url_for('static', filename='css/style.css')
     db_sess = db_session.create_session()
-    olympiad = [db_sess.query(Olympiads).get(olymp_id)]
+    olympiad = db_sess.query(Olympiads).get(olymp_id)
+    stages = olympiad.stages
+    return render_template("olympiad.html", olympiad=olympiad, url_style=url_style, admins=ADMINS, stages=stages)
 
-    return render_template("index.html", olympiads=olympiad, url_style=url_style, subjects=SUBJECTS)
+
+@app.route('/process_data/<int:index>/', methods=['POST'])
+def doit(index):
+    if index == 1:
+        print('УДАЛИТЬ ОЛИМПИАДУ')
+    if index == 2:
+        print('УДАЛИТЬ ОЛИМПИАДУ')
+
+    return 'ок'
 
 
 @app.route("/subjects/<subject>")
@@ -80,8 +114,7 @@ def subject(subject):
     if subject != 'all':
         subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
         olympiads = subject.olympiads if subject is not None else []
-        # olympiads = db_sess.query(olympiads_to_subjects_table).filter(
-        #     olympiads_to_subjects_table.subject_id.like(f'%{SUBJECTS[subject]}%')).all()
+
     print(olympiads)
     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS)
 
@@ -99,8 +132,9 @@ def register():
                          'name': form.name.data,
                          'school_class': form.school_class.data}).json())
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        user = db_sess.query(Users).filter(Users.email == form.email.data).first()
         login_user(user)
+
         return redirect('/')
     return render_template("register.html", url_style=url_style, form=form, authorization='Регистрация')
 
@@ -112,12 +146,29 @@ def login():
 
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        user = db_sess.query(Users).filter(Users.email == form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
+            if user.email in ADMINS: user.is_admin = True
             return redirect("/")
     return render_template("register.html", url_style=url_style, form=form, authorization='Вход',
                            current_user=current_user)
+
+
+@app.route("/add_user/<int:subj_id>", methods=['GET', 'POST'])
+def add_subj(subj_id):
+    db_sess = db_session.create_session()
+    user = db_sess.query(Users).get(1)
+    print(user.olympiads)
+    return ','.join(user.olympiads)
+
+
+@app.route("/add_stage/<int:stage_id>", methods=['GET', 'POST'])
+def add_stage(stage_id):
+    db_sess = db_session.create_session()
+    olymp = db_sess.query(Olympiads).get(2)
+    olymp.add_stage(db_sess, 1, datetime.date(year=2010, month=12, day=1))
+    return 'ок'
 
 
 if __name__ == '__main__':

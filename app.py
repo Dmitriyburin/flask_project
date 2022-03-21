@@ -25,15 +25,17 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:admin@localhost/main'
 api = Api(app)
-
-
-admin = Admin(app, name='admin', template_mode='bootstrap4')
-admin.add_view(ModelView(Users, db_session))
-
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+admin = Admin(app, name='admin', template_mode='bootstrap3')
+admin.add_view(ModelView(Olympiads, db.session))
+admin.add_view(ModelView(Users, db.session))
+admin.add_view(ModelView(Subjects, db.session))
+
 
 SUBJECTS = {'Математика': 1,
             'Информатика': 2,

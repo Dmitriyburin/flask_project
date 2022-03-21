@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 from .db_session import SqlAlchemyBase
 
-olympiads_to_subjects_table = sqlalchemy.Table('olympiads_to_subjects', SqlAlchemyBase.metadata,
+olympiads_to_subjects = sqlalchemy.Table('olympiads_to_subjects', SqlAlchemyBase.metadata,
                                                sqlalchemy.Column('olympiad_id', sqlalchemy.Integer,
                                                                  sqlalchemy.ForeignKey('olympiads_table.id'),
                                                                  primary_key=True),
@@ -23,3 +23,6 @@ class Subjects(SqlAlchemyBase, SerializerMixin):
     olympiads = relationship("Olympiads",
                              secondary="olympiads_to_subjects",
                              back_populates="subjects")
+
+    def __repr__(self):
+        return self.name

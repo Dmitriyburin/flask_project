@@ -31,7 +31,7 @@ api = Api(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-admin = Admin(app, name='admin', template_mode='bootstrap3')
+admin = Admin(app, name='Admin', template_mode='bootstrap3')
 admin.add_view(ModelView(Olympiads, db.session))
 admin.add_view(ModelView(Users, db.session))
 admin.add_view(ModelView(Subjects, db.session))

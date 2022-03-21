@@ -1,6 +1,68 @@
 {% extends 'base.html' %}
 
-{% block main_content %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div class="card mb-2">
+                <div class="card-body card-olymp">
+            
+                    <h6 class="card-subtitle mb-1 text-muted">{{ (olympiad.subjects | map(attribute='name')) | join(', ') }} | {{ [olympiad.school_classes[0], olympiad.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
+                    <a href='/olympiad/{{ olympiad.id }}' class="card-title">{{ olympiad.title }}</a>
+                    <p class="card-text">{{ olympiad.description}}</p>
+                    
+            
+                   
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card mb-2">
+                <div class="card-body card-olymp">
+            
+                    <h6 class="card-subtitle mb-1 text-muted">События</h6>
+                    <p class="card-text">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quibusdam deserunt vero tenetur odit in nemo a, fugiat culpa tempora voluptatum ab quia ducimus necessitatibus modi illum beatae totam impedit repellendus!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-2">
+                <div class="card-body card-olymp">
+            
+                    <h6 class="card-subtitle mb-1 text-muted">Этапы</h6>
+                    <ol class="list-group list-group-numbered">
+                        {% for stage in stages %}
+                        <li class="list-group-item d-flex justify-content-between align-items-start list-group-item-success">
+                          <div class="ms-2 me-auto">
+                            <div class="fw-bold">{{stage.name}}</div>
+                            Lorem ipsum dolor sit amet.
+                          </div>
+                          <span class="badge bg-primary rounded-pill fw-normal">20.03.22</span>
+                        </li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if current_user.email in admins %}
+
+    <form action="/process_data/1/" method="POST">
+        <input type="submit" class="btn btn-warning" value="Изменить">
+
+    </form>
+
+    <form action="/process_data/2/" method="POST">
+        <input type="submit" class="btn btn-danger" value="Удалить">
+
+    </form>
+
+    {% endif %}
+</div>
+
 
 
 

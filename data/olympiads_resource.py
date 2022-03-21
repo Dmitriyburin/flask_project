@@ -4,7 +4,7 @@ from flask_restful import abort, Resource
 from . import db_session
 from .olympiads import Olympiads
 from .olympiads_reqparse import parser
-from .olympiads_to_subjects import Subjects, olympiads_to_subjects_table
+from .olympiads_to_subjects import Subjects, olympiads_to_subjects
 from .olympiads_to_class import SchoolClasses
 from .parser import full_pars_olymp
 
@@ -98,6 +98,7 @@ def add_olymps_to_database():
         school_classes = [session.query(SchoolClasses).filter(SchoolClasses.number == sch_cl).first()
                           for sch_cl in range(olymp_dict['school_class'][0], olymp_dict['school_class'][-1] + 1)]
         for school_class in school_classes:
+            print(school_class)
             olymp.school_classes.append(school_class)
 
         session.add(olymp)

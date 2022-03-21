@@ -9,6 +9,15 @@ from .db_session import SqlAlchemyBase
 from sqlalchemy.orm import relationship
 from .olympiads import Olympiads
 
+users_to_olympiads = sqlalchemy.Table('users_to_olympiads', SqlAlchemyBase.metadata,
+                                      sqlalchemy.Column('user_id', sqlalchemy.Integer,
+                                                        sqlalchemy.ForeignKey('users.id'),
+                                                        primary_key=True),
+                                      sqlalchemy.Column('olympiad_id', sqlalchemy.Integer,
+                                                        sqlalchemy.ForeignKey('olympiads_table.id'),
+                                                        primary_key=True)
+                                      )
+
 
 class Users(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'users'

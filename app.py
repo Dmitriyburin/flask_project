@@ -1,6 +1,6 @@
 import datetime
 
-from flask import Flask, render_template, url_for, redirect
+from flask import Flask, render_template, url_for, redirect, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
@@ -14,9 +14,11 @@ from data.olympiads import Olympiads
 from data.users import Users
 from data.olympiads_resource import OlympiadsResource, OlympiadsListResource
 from data.olympiads_to_subjects import Subjects
+from data.olympiads_to_class import SchoolClasses
 from data.olympiads_resource import add_olymps_to_database, add_subject_api, delete_subject_api
 
 from forms.user import RegisterForm, LoginForm
+from forms.search_olympiads import SearchOlympiadForm
 
 from requests import get, post
 
@@ -35,7 +37,6 @@ admin = Admin(app, name='Admin', template_mode='bootstrap3')
 admin.add_view(ModelView(Olympiads, db.session))
 admin.add_view(ModelView(Users, db.session))
 admin.add_view(ModelView(Subjects, db.session))
-
 
 SUBJECTS = {'Математика': 1,
             'Информатика': 2,
@@ -71,13 +72,31 @@ def main():
     app.run(debug=True)
 
 
-@app.route("/")
-def index():
+@app.route("/subjects/<subject>/<school_class>", methods=['GET', 'POST'])
+@app.route("/", methods=['POST', 'GET'])
+def index(subject=None, school_class=None):
     url_style = url_for('static', filename='css/style.css')
+
     db_sess = db_session.create_session()
     olympiads = db_sess.query(Olympiads).all()
+    school_classes = db_sess.query(SchoolClasses).all()
+    form = SearchOlympiadForm()
+    form.subject.choices = [(sub, sub) for i, sub in enumerate(['Все предметы'] + list(SUBJECTS.keys()))]
+    form.school_class.choices = [(cls, cls) for i, cls in enumerate(['Все классы'] + school_classes)]
+    if form.validate_on_submit():
+        subs = form.subject.data
+        classes = form.school_class.data
+        print(subs, classes)
+        return redirect(f'/subjects/{subs}/{classes}')
+    if subject and subject != 'Все предметы':
+        subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
+        olympiads = subject.olympiads if subject is not None else []
+    if school_class and school_class != 'Все классы':
+        olympiads = list(filter(lambda x:
+                                int(school_class) in [int(el.number) for el in x.school_classes], olympiads))
+
     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS,
-                           current_user=current_user, admins=ADMINS)
+                           current_user=current_user, admins=ADMINS, classes=school_classes, form=form)
 
 
 @app.route("/favorite_olympiads")
@@ -108,17 +127,22 @@ def doit(index):
     return 'ок'
 
 
-@app.route("/subjects/<subject>")
-def subject(subject):
-    url_style = url_for('static', filename='css/style.css')
-    db_sess = db_session.create_session()
-    olympiads = db_sess.query(Olympiads).all()
-    if subject != 'all':
-        subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
-        olympiads = subject.olympiads if subject is not None else []
-
-    print(olympiads)
-    return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS)
+# @app.route("/subjects/<subject>", methods=['GET', 'POST'])
+# def subject(subject):
+#     url_style = url_for('static', filename='css/style.css')
+#     db_sess = db_session.create_session()
+#     olympiads = db_sess.query(Olympiads).all()
+#     school_classes = db_sess.query(SchoolClasses).all()
+#     form = SearchOlympiadForm()
+#     form.subject.choices = [(i, sub) for i, sub in enumerate(list(SUBJECTS.keys()))]
+#     form.school_class.choices = [(i, cls) for i, cls in enumerate(school_classes)]
+#     if subject != 'all':
+#         print(subject)
+#         subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
+#         olympiads = subject.olympiads if subject is not None else []
+#
+#     print(olympiads)
+#     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS, form=form)
 
 
 @app.route("/register", methods=['GET', 'POST'])

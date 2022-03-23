@@ -48,13 +48,12 @@
               <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <!-- Navbar brand -->
                 <a class="navbar-brand mt-2 mt-lg-0" href="/">
-                  <i class="fa-solid fa-user"></i>
-                  <!-- <img
+                  <img
                     src="https://mdbcdn.b-cdn.net/img/logo/mdb-transaprent-noshadows.webp"
                     height="15"
                     alt="MDB Logo"
                     loading="lazy"
-                  /> -->
+                  />
                 </a>
                 <!-- Left links -->
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -74,7 +73,7 @@
 
                 <!-- Avatar -->
                 {% if current_user.is_authenticated %}
-                <div class="dropdown">
+                <div class="dropdown avatar">
                   <a
                     class="dropdown-toggle d-flex align-items-center hidden-arrow"
                     href="#"
@@ -84,10 +83,10 @@
                     aria-expanded="false"
                   >
                     <img
-                      src="../static/img/user.png"
+                      src="{{ current_user.avatar(35) }}"
                       class="rounded-circle"
-                      height="25"
-                      alt="Black and White Portrait of a Man"
+                      height="40"
+                      alt="ava"
                       loading="lazy"
                     />
                   </a>

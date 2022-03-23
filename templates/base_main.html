@@ -7,8 +7,12 @@
     <main>
         <div class="row">
             <div class="col-2 fixed">
-                <div class="block shadow-4">
-                        <div class="dropdown">
+                <div class="block shadow-4 left-navigation">
+                    <form action="" method="post" novalidate>
+                        <div>
+                            {{ form.csrf_token }}
+                        </div>
+                        <!-- <div class="dropdown">
                             <button
                                 class="btn btn-primary dropdown-toggle w-100"
                                 type="button"
@@ -25,8 +29,31 @@
                                 {% endfor %}
         
                             </ul>
-                    </div>
-                    
+
+                        </div> -->
+                        <p>
+                            {{ form.subject(class='form-select')}}
+                            <!-- <select class="form-select" aria-label="subjects">
+                                <option value="1">Все предметы</option>
+                                {% for sub in subjects %}
+                                    <option value="{{loop.index + 1}}">{{ sub }}</option>
+                                {% endfor %}
+                            </select> -->
+                        </p>
+                        <p>
+                            {{ form.school_class(class='form-select')}}
+
+                            <!-- <select class="form-select" aria-label="school_classes">
+                                <option value="1">Все классы</option>
+                                {% for class in classes %}
+                                    <option value="{{loop.index + 1}}">{{ class.number }}</option>
+                                {% endfor %}
+                            </select> -->
+                        </p>
+                        <p>
+                            <button class="btn btn-primary" type="submit">Искать</button>
+                        </p>
+                    </form>
                 </div>
 
             </div>

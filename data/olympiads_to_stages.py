@@ -21,9 +21,14 @@ class Stages(SqlAlchemyBase):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String(35), nullable=True)
-    olympiads = relationship("Olympiads",
-                             secondary="olympiads_to_stages",
-                             back_populates="stages")
+    olympiad_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('olympiads.id'))
+    olympiad = relationship('Olympiads', back_populates="stages")
+    # olympiads = relationship("Olympiads",
+    #                          secondary="olympiads_to_stages",
+    #                          back_populates="stages")
 
     def __repr__(self):
         return self.name
+
+
+

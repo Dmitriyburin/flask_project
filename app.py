@@ -15,6 +15,7 @@ from data.users import Users
 from data.olympiads_resource import OlympiadsResource, OlympiadsListResource
 from data.olympiads_to_subjects import Subjects
 from data.olympiads_to_class import SchoolClasses
+from data.olympiads_to_stages import Stages
 from data.olympiads_resource import add_olymps_to_database, add_subject_api, delete_subject_api
 
 from forms.user import RegisterForm, LoginForm
@@ -37,6 +38,7 @@ admin = Admin(app, name='Admin', template_mode='bootstrap3')
 admin.add_view(ModelView(Olympiads, db.session))
 admin.add_view(ModelView(Users, db.session))
 admin.add_view(ModelView(Subjects, db.session))
+admin.add_view(ModelView(Stages, db.session))
 
 SUBJECTS = {'Математика': 1,
             'Информатика': 2,
@@ -72,11 +74,14 @@ def main():
     app.run(debug=True)
 
 
-@app.route("/subjects/<subject>/<school_class>", methods=['GET', 'POST'])
-@app.route("/", methods=['POST', 'GET'])
+@app.route("/favourite_olympiads", methods=['GET', 'POST'])
+@app.route("/filters/<subject>/<school_class>", methods=['GET', 'POST'])
+@app.route("/", methods=['GET', 'POST'])
 def index(subject=None, school_class=None):
-    url_style = url_for('static', filename='css/style.css')
+    favourite = False
 
+    url_style = url_for('static', filename='css/style.css')
+    # add_olymps_to_database()
     db_sess = db_session.create_session()
     olympiads = db_sess.query(Olympiads).all()
     school_classes = db_sess.query(SchoolClasses).all()
@@ -87,7 +92,15 @@ def index(subject=None, school_class=None):
         subs = form.subject.data
         classes = form.school_class.data
         print(subs, classes)
-        return redirect(f'/subjects/{subs}/{classes}')
+        return redirect(f'/filters/{subs}/{classes}')
+
+    if request.path == '/favourite_olympiads':
+        if current_user:
+            favourite = True
+            olympiads = current_user.olympiads
+        else:
+            print('пользователь не зарегистрирован')
+
     if subject and subject != 'Все предметы':
         subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
         olympiads = subject.olympiads if subject is not None else []
@@ -96,24 +109,39 @@ def index(subject=None, school_class=None):
                                 int(school_class) in [int(el.number) for el in x.school_classes], olympiads))
 
     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS,
-                           current_user=current_user, admins=ADMINS, classes=school_classes, form=form)
+                           current_user=current_user, admins=ADMINS, classes=school_classes, form=form,
+                           favourite=favourite)
 
 
-@app.route("/favorite_olympiads")
+@app.route("/favourite_olympiads")
 def fav_olymps():
     if current_user:
         url_style = url_for('static', filename='css/style.css')
         olympiads = current_user.olympiads
         return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS,
-                               current_user=current_user, admins=ADMINS)
+                               current_user=current_user, admins=ADMINS, favourite=True)
 
 
-@app.route("/olympiad/<int:olymp_id>")
+@app.route("/olympiad/<int:olymp_id>", methods=['GET', 'POST'])
 def olympiad(olymp_id):
-    url_style = url_for('static', filename='css/style.css')
+    db_sess = db_session.create_session()
+    olympiad = db_sess.query(Olympiads).get(olymp_id)
+    db_sess.close()
+    if request.method == 'POST':
+        if request.form['submit_button'] == 'Добавить в избранные':
+            db_sess = db_session.create_session()
+            print(type(olympiad), )
+            current_user.olympiads.append(olympiad)
+            print(current_user.olympiads)
+            db_sess.commit()
+            db_sess.close()
+            print(current_user.olympiads)
+
     db_sess = db_session.create_session()
     olympiad = db_sess.query(Olympiads).get(olymp_id)
     stages = olympiad.stages
+    url_style = url_for('static', filename='css/style.css')
+
     return render_template("olympiad.html", olympiad=olympiad, url_style=url_style, admins=ADMINS, stages=stages)
 
 

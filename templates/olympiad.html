@@ -1,44 +1,38 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container">
+<div class="container olympiad-container">
     <div class="row">
-        <div class="col">
+        <!-- <div class="col">
             <div class="card mb-2">
                 <div class="card-body card-olymp">
             
                     <h6 class="card-subtitle mb-1 text-muted card-header">{{ (olympiad.subjects | map(attribute='name')) | join(', ') }} | {{ [olympiad.school_classes[0], olympiad.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
                     <a href='/olympiad/{{ olympiad.id }}' class="card-title">{{ olympiad.title }}</a>
                     <p class="card-text">{{ olympiad.description}}</p>
-                    <a href="{{ olympiad.link }}" class="card-text">Оффициальная ссылка</ф>
-                    
-            
-                   
                 </div>
             </div>
-        </div>
 
+        </div> -->
         <div class="col">
-            <div class="card mb-2">
-                <div class="card-body card-olymp">
-            
-                    <h6 class="card-subtitle mb-1 text-muted">События</h6>
-                    <p class="card-text">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quibusdam deserunt vero tenetur odit in nemo a, fugiat culpa tempora voluptatum ab quia ducimus necessitatibus modi illum beatae totam impedit repellendus!</p>
+            <div class="card border border-info shadow-0 mb-3 w-100" style="max-width: 25rem;">
+                <div class="card-header">{{ (olympiad.subjects | map(attribute='name')) | join(', ') }} | {{ [olympiad.school_classes[0], olympiad.school_classes[-1]] | map(attribute='number') | join('-')}} класс</div>
+                <div class="card-body">
+                  <h5 class="card-title">{{ olympiad.title }}</h5>
+                  <p class="card-text">{{ olympiad.description}}</p>
+                  <a href="{{ olympiad.link }}" class="card-text" target="_blank">Оффициальная ссылка</a>
                 </div>
-            </div>
+              </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-6">
-            <div class="card mb-2">
-                <div class="card-body card-olymp">
-            
-                    <h6 class="card-subtitle mb-1 text-muted">Этапы</h6>
+        <div class="col">
+            <div class="card border border-success shadow-0 mb-3 w-100" style="max-width: 25rem;">
+                <div class="card-header">Этапы</div>
+                <div class="card-body card-body-stages">
                     <ol class="list-group list-group-numbered">
                         {% for stage in stages %}
-                        <li class="list-group-item d-flex justify-content-between align-items-start list-group-item-success">
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
                           <div class="ms-2 me-auto">
-                            <div class="fw-bold">{{stage.name}}</div> 
+                            <div class="fw-450">{{stage.name}}</div> 
                             {{ stage.description }}
                           </div>
                           <span class="badge bg-primary rounded-pill fw-normal">{{ stage.date }}</span>
@@ -46,9 +40,9 @@
                         {% endfor %}
                     </ol>
                 </div>
-            </div>
-        </div>
+              </div>
     </div>
+
     {% if current_user.email in admins %}
 
     <form action="/process_data/1/" method="POST">
@@ -64,9 +58,15 @@
     {% endif %}
 
     {% if current_user.is_authenticated %}
+    {% if olympiad.id in favourites %}
+    <form method="post" action="">
+        <input type="submit" name="submit_button" class="btn btn-warning" value="Удалить из избранных">
+    </form>
+    {% else %}
     <form method="post" action="">
         <input type="submit" name="submit_button" class="btn btn-warning" value="Добавить в избранные">
     </form>
+    {% endif %}
     {% endif %}
 </div>
 

@@ -31,6 +31,19 @@ header {
   background-color: #f3e4d7;
 }
 
+.olympiad-container {
+  width: 60%;
+  margin: 0 auto;
+}
+
+.fw-450 {
+  font-weight: 450;
+}
+
+.card-body-stages {
+  padding: 15px;
+}
+
 form {
   margin-bottom: 15px;
 }

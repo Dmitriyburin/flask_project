@@ -126,23 +126,20 @@ def fav_olymps():
 def olympiad(olymp_id):
     db_sess = db_session.create_session()
     olympiad = db_sess.query(Olympiads).get(olymp_id)
-    db_sess.close()
     if request.method == 'POST':
         if request.form['submit_button'] == 'Добавить в избранные':
-            db_sess = db_session.create_session()
-            print(type(olympiad), )
-            current_user.olympiads.append(olympiad)
-            print(current_user.olympiads)
+            user = db_sess.query(Users).filter(Users.email == current_user.email).first()
+            user.olympiads.append(olympiad)
             db_sess.commit()
-            db_sess.close()
-            print(current_user.olympiads)
+        if request.form['submit_button'] == 'Удалить из избранных':
+            user = db_sess.query(Users).filter(Users.email == current_user.email).first()
+            user.olympiads.remove(olympiad)
+            db_sess.commit()
 
-    db_sess = db_session.create_session()
-    olympiad = db_sess.query(Olympiads).get(olymp_id)
     stages = olympiad.stages
     url_style = url_for('static', filename='css/style.css')
-
-    return render_template("olympiad.html", olympiad=olympiad, url_style=url_style, admins=ADMINS, stages=stages)
+    return render_template("olympiad.html", olympiad=olympiad, url_style=url_style, admins=ADMINS, stages=stages,
+                           favourites=[i.id for i in current_user.olympiads])
 
 
 @app.route('/process_data/<int:index>/', methods=['POST'])

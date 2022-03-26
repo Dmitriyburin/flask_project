@@ -7,9 +7,10 @@
             <div class="card mb-2">
                 <div class="card-body card-olymp">
             
-                    <h6 class="card-subtitle mb-1 text-muted">{{ (olympiad.subjects | map(attribute='name')) | join(', ') }} | {{ [olympiad.school_classes[0], olympiad.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
+                    <h6 class="card-subtitle mb-1 text-muted card-header">{{ (olympiad.subjects | map(attribute='name')) | join(', ') }} | {{ [olympiad.school_classes[0], olympiad.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
                     <a href='/olympiad/{{ olympiad.id }}' class="card-title">{{ olympiad.title }}</a>
                     <p class="card-text">{{ olympiad.description}}</p>
+                    <a href="{{ olympiad.link }}" class="card-text">Оффициальная ссылка</ф>
                     
             
                    
@@ -28,7 +29,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col">
+        <div class="col-6">
             <div class="card mb-2">
                 <div class="card-body card-olymp">
             
@@ -37,10 +38,10 @@
                         {% for stage in stages %}
                         <li class="list-group-item d-flex justify-content-between align-items-start list-group-item-success">
                           <div class="ms-2 me-auto">
-                            <div class="fw-bold">{{stage.name}}</div>
-                            Lorem ipsum dolor sit amet.
+                            <div class="fw-bold">{{stage.name}}</div> 
+                            {{ stage.description }}
                           </div>
-                          <span class="badge bg-primary rounded-pill fw-normal">20.03.22</span>
+                          <span class="badge bg-primary rounded-pill fw-normal">{{ stage.date }}</span>
                         </li>
                         {% endfor %}
                     </ol>
@@ -60,6 +61,12 @@
 
     </form>
 
+    {% endif %}
+
+    {% if current_user.is_authenticated %}
+    <form method="post" action="">
+        <input type="submit" name="submit_button" class="btn btn-warning" value="Добавить в избранные">
+    </form>
     {% endif %}
 </div>
 

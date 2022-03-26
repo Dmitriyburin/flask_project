@@ -8,6 +8,8 @@ from .db_session import SqlAlchemyBase
 from .olympiads_to_subjects import Subjects
 
 
+from .olympiads_to_stages import Stages
+
 class Olympiads(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'olympiads_table'
 

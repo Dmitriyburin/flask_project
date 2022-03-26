@@ -5,27 +5,39 @@
     <div class="col main-content">
         {% for olymp in olympiads %}
             <div class="card mb-2">
-                <div class="card-body card-olymp">
-
-                    <h6 class="card-subtitle mb-1 text-muted">{{ (olymp.subjects | map(attribute='name')) | join(', ') }} | {{ [olymp.school_classes[0], olymp.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
-                    <a href='/olympiad/{{ olymp.id }}' class="card-title">{{ olymp.title }}</a>
-                    <p class="card-text">{{ olymp.description}}</p>
-                    <!-- <a href="/olympiad/{{ olymp.id }}" class="btn btn-primary">Подробнее</a> -->
-                    
-    
-                    <!-- {% if current_user.email in admins %}
-                        <a href="/olympiad-change/{{ olymp.id }}" 
-                        type="button" class="btn btn-warning" >Изменить</a>
-                        </a>
-                        <a href="/olympiad-delete/{{ olymp.id }}" 
-                        type="button" class="btn btn-danger"  >Удалить</a>
-                        </a>
-                    {% endif %} -->
-                </div>
+                {% if favourite %}
+                    <div class="card-body card-olymp favourite">
+                        <h6 class="card-subtitle mb-1 text-muted">{{ (olymp.subjects | map(attribute='name')) | join(', ') }} | {{ [olymp.school_classes[0], olymp.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
+                        <a href='/olympiad/{{ olymp.id }}' class="card-title">{{ olymp.title }}</a>
+                        <p class="card-text">{{ olymp.description}}</p>
+                    </div>
+                {% else %}
+                    <div class="card-body card-olymp">
+                        <h6 class="card-subtitle mb-1 text-muted">{{ (olymp.subjects | map(attribute='name')) | join(', ') }} | {{ [olymp.school_classes[0], olymp.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
+                        <a href='/olympiad/{{ olymp.id }}' class="card-title">{{ olymp.title }}</a>
+                        <p class="card-text">{{ olymp.description}}</p>
+                    </div>
+                {% endif %}
             </div>
 
         {% endfor %}
-
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+              <li class="page-item">
+                <a class="page-link" href="#" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+              <li class="page-item"><a class="page-link" href="#">1</a></li>
+              <li class="page-item"><a class="page-link" href="#">2</a></li>
+              <li class="page-item"><a class="page-link" href="#">3</a></li>
+              <li class="page-item">
+                <a class="page-link" href="#" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
         {% set len_olymps = olympiads | length%}
         {% if not len_olymps: %}
             <div class="alert alert-info" role="alert">

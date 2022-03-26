@@ -12,9 +12,27 @@ header {
   padding: 15px;
 }
 
+.sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 75px;
+}
+
+.left-navigation select {
+  margin-bottom: 10px;
+}
+
 .card-olymp {
-  border-radius: 15px;
+  border-radius: 8px;
   background-color: #d7e3f3;
+}
+
+.card-olymp.favourite {
+  background-color: #f3e4d7;
+}
+
+form {
+  margin-bottom: 15px;
 }
 
 .container-register {

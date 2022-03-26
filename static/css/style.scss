@@ -1,4 +1,5 @@
 $font-stack: 'Rubik', sans-serif;
+$light-color: rgba(0,0,0,.55);
 
 // Базовая настройка
 body {
@@ -16,12 +17,39 @@ header {
 
 }
 
+.sticky {
+    position: sticky;
+    top: 75px;
+}
+
+// Header
+.avatar {
+    img{
+        // border: 1px solid $light-color;
+    }
+}
+
+// Навигация слева
+.left-navigation {
+    select {
+        margin-bottom: 10px;
+    }
+}
+
 // Олимпиады
 .card-olymp {
-    // border: 2px solid rgb(50, 110, 223);
-    border-radius: 15px;
+    border-radius: 8px;
     background-color: rgb(215, 227, 243);
+    &.favourite {
+        background-color: rgb(243, 228, 215);
+        
+    }
 }
+
+form {
+    margin-bottom: 15px;
+}
+
 
 // Регистрация
 .container-register {

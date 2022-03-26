@@ -83,12 +83,13 @@ def add_olymps_to_database():
     olymps = full_pars_olymp()
     pprint(olymps)
     for olymp_dict in olymps:
+        links = olymp_dict['links']
         olymp = Olympiads(
             title=olymp_dict['title'],
             # school_class=', '.join(olymp_dict['school_class']),
             description='описание',
             duration=120,
-            link='ссылка',
+            link=links.get('Сайт', 'ссылка'),
         )
         for sub in olymp_dict['subject']:
             subject = session.query(Subjects).filter(Subjects.name.like(f'%{sub.lower()}%')).first()

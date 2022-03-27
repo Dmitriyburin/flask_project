@@ -22,6 +22,15 @@ header {
     top: 75px;
 }
 
+
+.col-2 {
+    width: 20%;
+}
+
+li {
+    list-style-type: none;
+}
+
 // Header
 .avatar {
     img{
@@ -47,7 +56,7 @@ header {
 }
 
 .olympiad-container {
-    width: 60%;
+    width: 900px;
     margin: 0 auto;
 }
 
@@ -62,6 +71,49 @@ header {
 form {
     margin-bottom: 15px;
 }
+
+// Поиск
+
+
+
+.ui-menu {
+    margin: 0;
+    padding: 0;
+    border-radius: 15px;
+    width: 50%;
+    background-color: #fff;
+    &-item {
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+        border-bottom-left-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+        color: #262626;
+        list-style-type: none;
+        margin: 0;
+        padding: .5rem 1rem;
+        &:hover {
+            background-color: rgb(240, 239, 239);
+        }
+    }
+
+    a {
+        color: #262626;
+
+    }
+}
+
+.subjects-select {
+
+    
+    option {
+        text: purple;
+        }
+        // @extend .ui-menu;
+        // @extend .ui-menu-item;
+
+    }
+}
+
 
 
 // Регистрация

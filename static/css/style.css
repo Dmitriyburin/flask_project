@@ -18,6 +18,14 @@ header {
   top: 75px;
 }
 
+.col-2 {
+  width: 20%;
+}
+
+li {
+  list-style-type: none;
+}
+
 .left-navigation select {
   margin-bottom: 10px;
 }
@@ -32,7 +40,7 @@ header {
 }
 
 .olympiad-container {
-  width: 60%;
+  width: 900px;
   margin: 0 auto;
 }
 
@@ -46,6 +54,37 @@ header {
 
 form {
   margin-bottom: 15px;
+}
+
+.ui-menu {
+  margin: 0;
+  padding: 0;
+  border-radius: 15px;
+  width: 50%;
+  background-color: #fff;
+}
+
+.ui-menu-item {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  color: #262626;
+  list-style-type: none;
+  margin: 0;
+  padding: .5rem 1rem;
+}
+
+.ui-menu-item:hover {
+  background-color: #f0efef;
+}
+
+.ui-menu a {
+  color: #262626;
+}
+
+.subjects-select option:hover {
+  background-color: #f0efef;
 }
 
 .container-register {

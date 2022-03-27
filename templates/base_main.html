@@ -32,15 +32,26 @@
 
                         </div> -->
                         <p>
-                            {{ form.subject(class='form-select')}}
+
+                            {{ form.subject(class='form-select subjects-select')}}
 
                         </p>
                         <p>
                             {{ form.school_class(class='form-select')}}
                         </p>
+
+                        <p>
+                            {{ form.title(class='form-control rounded select-input', id='search_olympiad', type='text') }}
+                            <!-- <div class="input-group rounded">
+                                <input type="search" class="form-control rounded" placeholder="Название" aria-label="search" aria-describedby="search-addon" />
+        
+                            </div> -->
+                        </p>
+
                         <p>
                             <button class="btn btn-primary w-100" type="submit">Искать</button>
                         </p>
+                        
                     </form>
                 </div>
 
@@ -51,6 +62,19 @@
     </div>
         
     </main>
+    <script>
+        $( function() {
+          var availableTags = [
+              {% for olymp in olympiads %}
+                  "{{olymp.title}}",
+              {% endfor %}
+          ];
+          var results = $( "#search_olympiad" ).autocomplete({
+            source: availableTags, minLength: 5
+          });
+          response(results.slice(0, 10));
+        } );
+    </script>
 </div>
 
 {% endblock %}

@@ -6,7 +6,7 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
-from flask_admin import Admin
+from flask_admin import Admin, expose, AdminIndexView, helpers
 from flask_admin.contrib.sqlamodel import ModelView
 
 from data import db_session, olympiads_resource, users_resources
@@ -34,18 +34,6 @@ api = Api(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-admin = Admin(app, name='Admin', template_mode='bootstrap3')
-admin.add_view(ModelView(Olympiads, db.session))
-admin.add_view(ModelView(Users, db.session))
-admin.add_view(ModelView(Subjects, db.session))
-admin.add_view(ModelView(Stages, db.session))
-
-SUBJECTS = {'Математика': 1,
-            'Информатика': 2,
-            'Физика': 1,
-            'Химия': 1,
-            'Русский язык': 1
-            }
 ADMINS = ['123@123']
 
 
@@ -62,6 +50,32 @@ def logout():
     return redirect("/")
 
 
+class MyAdminIndexView(AdminIndexView):
+
+    @expose('/')
+    def index(self):
+        if not current_user.is_authenticated:
+            return redirect('/login')
+        if current_user.email not in ADMINS:
+            return redirect('/')
+        return super(MyAdminIndexView, self).index()
+
+
+admin = Admin(app, name='Admin', index_view=MyAdminIndexView(), template_mode='bootstrap3',
+              base_template='my_master.html')
+admin.add_view(ModelView(Olympiads, db.session))
+admin.add_view(ModelView(Users, db.session))
+admin.add_view(ModelView(Subjects, db.session))
+admin.add_view(ModelView(Stages, db.session))
+
+SUBJECTS = {'Математика': 1,
+            'Информатика': 2,
+            'Физика': 1,
+            'Химия': 1,
+            'Русский язык': 1
+            }
+
+
 def main():
     db_session.global_init()
     # app.register_blueprint(jobs_api.blueprint)
@@ -75,9 +89,10 @@ def main():
 
 
 @app.route("/favourite_olympiads", methods=['GET', 'POST'])
-@app.route("/filters/<subject>/<school_class>", methods=['GET', 'POST'])
+@app.route("/filters/<subject>/<school_class>/", methods=['GET', 'POST'])
+@app.route("/filters/<subject>/<school_class>/<title>", methods=['GET', 'POST'])
 @app.route("/", methods=['GET', 'POST'])
-def index(subject=None, school_class=None):
+def index(subject=None, school_class=None, title=None):
     favourite = False
 
     url_style = url_for('static', filename='css/style.css')
@@ -91,15 +106,19 @@ def index(subject=None, school_class=None):
     if form.validate_on_submit():
         subs = form.subject.data
         classes = form.school_class.data
-        print(subs, classes)
-        return redirect(f'/filters/{subs}/{classes}')
+        title = form.title.data
+        print(subs, classes, title)
+        return redirect(f'/filters/{subs}/{classes}/{title}')
 
     if request.path == '/favourite_olympiads':
-        if current_user:
+        if current_user.is_authenticated:
             favourite = True
             olympiads = current_user.olympiads
         else:
             print('пользователь не зарегистрирован')
+
+    if title:
+        olympiads = db_sess.query(Olympiads).filter(Olympiads.title.like(f'%{title}%')).all()
 
     if subject and subject != 'Все предметы':
         subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
@@ -115,7 +134,7 @@ def index(subject=None, school_class=None):
 
 @app.route("/favourite_olympiads")
 def fav_olymps():
-    if current_user:
+    if current_user.is_authenticated:
         url_style = url_for('static', filename='css/style.css')
         olympiads = current_user.olympiads
         return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS,
@@ -126,6 +145,9 @@ def fav_olymps():
 def olympiad(olymp_id):
     db_sess = db_session.create_session()
     olympiad = db_sess.query(Olympiads).get(olymp_id)
+    favourites = None
+    if current_user.is_authenticated:
+        favourites = [i.id for i in current_user.olympiads]
     if request.method == 'POST':
         if request.form['submit_button'] == 'Добавить в избранные':
             user = db_sess.query(Users).filter(Users.email == current_user.email).first()
@@ -139,7 +161,7 @@ def olympiad(olymp_id):
     stages = olympiad.stages
     url_style = url_for('static', filename='css/style.css')
     return render_template("olympiad.html", olympiad=olympiad, url_style=url_style, admins=ADMINS, stages=stages,
-                           favourites=[i.id for i in current_user.olympiads])
+                           favourites=favourites)
 
 
 @app.route('/process_data/<int:index>/', methods=['POST'])

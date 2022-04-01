@@ -101,17 +101,13 @@ def index(subject=None, school_class=None, title=None):
     # add_olymps_to_database()
     db_sess = db_session.create_session()
     subjects = [sub.name for sub in db_sess.query(Subjects).all()]
-    print(subjects)
 
-    olympiads_total = db_sess.query(Olympiads).count()
     school_classes = db_sess.query(SchoolClasses).all()
 
     page = request.args.get(get_page_parameter(), type=int, default=1)
-    pagination = Pagination(page=page, total=olympiads_total)
     start = (page - 1) * PER_PAGE
     end = start + PER_PAGE
-    olympiads = db_sess.query(Olympiads).slice(start, end).all()
-    print(olympiads)
+    olympiads = db_sess.query(Olympiads).all()
 
     form = SearchOlympiadForm()
     form.subject.choices = [(sub, sub) for i, sub in enumerate(['Все предметы'] + subjects)]
@@ -120,7 +116,6 @@ def index(subject=None, school_class=None, title=None):
         subs = form.subject.data
         classes = form.school_class.data
         title = form.title.data
-        print(subs, classes, title)
         return redirect(f'/filters/{subs}/{classes}/{title}')
 
     if request.path == '/favourite_olympiads':
@@ -135,13 +130,14 @@ def index(subject=None, school_class=None, title=None):
 
     if subject and subject != 'Все предметы':
         subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
-        olympiads = subject.olympiads[start:end] if subject is not None else []
-        pagination = Pagination(page=page, total=len(subject.olympiads))
+        olympiads = subject.olympiads if subject is not None else []
 
     if school_class and school_class != 'Все классы':
         olympiads = list(filter(lambda x:
                                 int(school_class) in [int(el.number) for el in x.school_classes], olympiads))
 
+    pagination = Pagination(page=page, total=len(olympiads))
+    olympiads = olympiads[start:end]
     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=subjects,
                            current_user=current_user, admins=ADMINS, classes=school_classes, form=form,
                            favourite=favourite, pagination=pagination)

@@ -5,6 +5,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_paginate import Pagination, get_page_parameter
 
 from flask_admin import Admin, expose, AdminIndexView, helpers
 from flask_admin.contrib.sqlamodel import ModelView
@@ -93,15 +94,27 @@ def main():
 @app.route("/filters/<subject>/<school_class>/<title>", methods=['GET', 'POST'])
 @app.route("/", methods=['GET', 'POST'])
 def index(subject=None, school_class=None, title=None):
+    PER_PAGE = 10
     favourite = False
 
     url_style = url_for('static', filename='css/style.css')
     # add_olymps_to_database()
     db_sess = db_session.create_session()
-    olympiads = db_sess.query(Olympiads).all()
+    subjects = [sub.name for sub in db_sess.query(Subjects).all()]
+    print(subjects)
+
+    olympiads_total = db_sess.query(Olympiads).count()
     school_classes = db_sess.query(SchoolClasses).all()
+
+    page = request.args.get(get_page_parameter(), type=int, default=1)
+    pagination = Pagination(page=page, total=olympiads_total)
+    start = (page - 1) * PER_PAGE
+    end = start + PER_PAGE
+    olympiads = db_sess.query(Olympiads).slice(start, end).all()
+    print(olympiads)
+
     form = SearchOlympiadForm()
-    form.subject.choices = [(sub, sub) for i, sub in enumerate(['Все предметы'] + list(SUBJECTS.keys()))]
+    form.subject.choices = [(sub, sub) for i, sub in enumerate(['Все предметы'] + subjects)]
     form.school_class.choices = [(cls, cls) for i, cls in enumerate(['Все классы'] + school_classes)]
     if form.validate_on_submit():
         subs = form.subject.data
@@ -122,14 +135,16 @@ def index(subject=None, school_class=None, title=None):
 
     if subject and subject != 'Все предметы':
         subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
-        olympiads = subject.olympiads if subject is not None else []
+        olympiads = subject.olympiads[start:end] if subject is not None else []
+        pagination = Pagination(page=page, total=len(subject.olympiads))
+
     if school_class and school_class != 'Все классы':
         olympiads = list(filter(lambda x:
                                 int(school_class) in [int(el.number) for el in x.school_classes], olympiads))
 
-    return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS,
+    return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=subjects,
                            current_user=current_user, admins=ADMINS, classes=school_classes, form=form,
-                           favourite=favourite)
+                           favourite=favourite, pagination=pagination)
 
 
 @app.route("/favourite_olympiads")

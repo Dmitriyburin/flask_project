@@ -8,7 +8,7 @@
         <div class="row">
             <div class="col-2 fixed">
                 <div class="block shadow-4 left-navigation sticky">
-                    <form action="" method="post" novalidate>
+                    <form action="" method="post" onsubmit="submitForm()" novalidate>
                         <div>
                             {{ form.csrf_token }}
                         </div>
@@ -33,11 +33,12 @@
                         </div> -->
                         <p>
 
-                            {{ form.subject(class='form-select subjects-select')}}
+                            {{ form.subject(class='form-select subjects-select', id='subjectID')}}
+
 
                         </p>
                         <p>
-                            {{ form.school_class(class='form-select')}}
+                            {{ form.school_class(class='form-select', id='schoolClassID')}}
                         </p>
 
                         <p>
@@ -62,6 +63,32 @@
     </div>
         
     </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+          var item = localStorage.getItem('subjectID');
+          var select = document.getElementById("subjectID");
+          if (item !== null) {
+            select.value = item;
+          }
+
+          var item = localStorage.getItem('schoolClassID');
+          var select = document.getElementById("schoolClassID");
+          if (item !== null) {
+            select.value = item;
+          }
+
+      });
+      function submitForm(){
+          var select = document.getElementById("subjectID");
+          var value = select.options[select.selectedIndex].value;
+          localStorage.setItem('subjectID', value);
+
+          var select = document.getElementById("schoolClassID");
+          var value = select.options[select.selectedIndex].value;
+          localStorage.setItem('schoolClassID', value);
+      }
+      </script>
+
     <script>
         $( function() {
           var availableTags = [

@@ -3,6 +3,10 @@
 {% block main_content %}
             
     <div class="col main-content">
+      <div class="pagination">
+        {{ pagination.links }}
+      </div>
+
         {% for olymp in olympiads %}
             <div class="card mb-2">
                 {% if favourite %}
@@ -45,8 +49,12 @@
             </div>
 
         {% endif %}
+        <div class="pagination mt-1">
+          {{ pagination.links }}
+        </div>
+
     </div> 
   
         
-        
+
 {% endblock %}

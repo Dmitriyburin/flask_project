@@ -98,6 +98,8 @@ def index(subject=None, school_class=None, title=None):
     favourite = False
 
     url_style = url_for('static', filename='css/style.css')
+    url_logo = url_for('static', filename='img/logo.jpg')
+
     # add_olymps_to_database()
     db_sess = db_session.create_session()
     subjects = [sub.name for sub in db_sess.query(Subjects).all()]
@@ -127,6 +129,7 @@ def index(subject=None, school_class=None, title=None):
 
     if title:
         olympiads = db_sess.query(Olympiads).filter(Olympiads.title.like(f'%{title}%')).all()
+        print(olympiads)
 
     if subject and subject != 'Все предметы':
         subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
@@ -140,16 +143,18 @@ def index(subject=None, school_class=None, title=None):
     olympiads = olympiads[start:end]
     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=subjects,
                            current_user=current_user, admins=ADMINS, classes=school_classes, form=form,
-                           favourite=favourite, pagination=pagination)
+                           favourite=favourite, pagination=pagination, url_logo=url_logo)
 
 
 @app.route("/favourite_olympiads")
 def fav_olymps():
     if current_user.is_authenticated:
         url_style = url_for('static', filename='css/style.css')
+        url_logo = url_for('static', filename='img/logo.jpg')
+
         olympiads = current_user.olympiads
         return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS,
-                               current_user=current_user, admins=ADMINS, favourite=True)
+                               current_user=current_user, admins=ADMINS, favourite=True, url_logo=url_logo)
 
 
 @app.route("/olympiad/<int:olymp_id>", methods=['GET', 'POST'])
@@ -171,8 +176,9 @@ def olympiad(olymp_id):
 
     stages = olympiad.stages
     url_style = url_for('static', filename='css/style.css')
+    url_logo = url_for('static', filename='img/logo.jpg')
     return render_template("olympiad.html", olympiad=olympiad, url_style=url_style, admins=ADMINS, stages=stages,
-                           favourites=favourites)
+                           favourites=favourites, url_logo=url_logo)
 
 
 @app.route('/process_data/<int:index>/', methods=['POST'])

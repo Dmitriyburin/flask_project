@@ -20,7 +20,7 @@ class Stages(SqlAlchemyBase):
     __tablename__ = 'stages_table'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    name = sqlalchemy.Column(sqlalchemy.String(35), nullable=True)
+    name = sqlalchemy.Column(sqlalchemy.String(80), nullable=True)
     olympiad_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('olympiads_table.id'))
     olympiad = relationship('Olympiads', back_populates="stages")
     date = sqlalchemy.Column(sqlalchemy.Date, default=datetime.date.today())

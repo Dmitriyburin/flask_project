@@ -6,6 +6,7 @@ from .olympiads import Olympiads
 from .olympiads_reqparse import parser
 from .olympiads_to_subjects import Subjects, olympiads_to_subjects
 from .olympiads_to_class import SchoolClasses
+from .olympiads_to_stages import Stages
 from .parser import full_pars_olymp
 
 from pprint import pprint
@@ -101,6 +102,13 @@ def add_olymps_to_database():
         for school_class in school_classes:
             print(school_class)
             olymp.school_classes.append(school_class)
+
+        for stage_info in olymp_dict['stages']:
+            stage = Stages(
+                name=stage_info['name'],
+                date=stage_info['date'][0]
+            )
+            olymp.stages.append(stage)
 
         session.add(olymp)
         session.commit()

@@ -2,6 +2,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 from pprint import pprint
+import datetime
 
 
 def pars_olymps(page):
@@ -11,6 +12,8 @@ def pars_olymps(page):
     olympiads = table_olympiads.find_all('a', class_='black_hover_blue')
     subjects = table_olympiads.find_all('span', class_='light_grey')
     for i, olymp in enumerate(olympiads):
+        if i == 2:
+            break
         separate_number_page = olymp['href'].split('/')[2]
         separate_page_dict = parse_separate_page(separate_number_page)
         olymp_info = subjects[i].text.split(' |')
@@ -30,8 +33,8 @@ def pars_olymps(page):
     return olympiads_list
 
 
-def parse_separate_page(number_page):
-    page = requests.get(f'https://info.olimpiada.ru/activity/{number_page}')
+def parse_separate_page(number_olymp):
+    page = requests.get(f'https://info.olimpiada.ru/activity/{number_olymp}')
     soup = BeautifulSoup(page.text, 'html.parser')
     table_olympiad = soup.find('table', class_='act_info_table')
     links_with_title = table_olympiad.find_all('tr')[1:]
@@ -43,14 +46,33 @@ def parse_separate_page(number_page):
             links[title] = link
         except TypeError:
             continue
-    # if not links[0].count(\
-    # 'http'): links = links[1:]
-    return {'links': links}
+
+    stages = parse_stages(f'https://info.olimpiada.ru/activity/{number_olymp}/events')
+
+    return {'links': links, 'stages': stages}
     # official_site_link = links[0]
     # email_link = links[1]
     # founders_links = links[2:]
     # return {'links': [{'official_site_link': official_site_link,
     #                    'email_link': email_link, 'founders_links': founders_links}]}
+
+
+def parse_stages(link):
+    page = requests.get(link)
+    soup = BeautifulSoup(page.text, 'html.parser')
+    stages_a = soup.find('div', id='archive_events')
+    stages = []
+    for i, a in enumerate(stages_a):
+        description = a.find_all('td')[1].contents[1].text.strip()
+        dates = a.find('font').text.split(' - ')
+        if description.startswith('-'):
+            description = description[2:]
+        dates = [datetime.datetime.strptime(date, "%d.%m.%Y") for date in dates]
+        stages.append({
+            'date': dates,
+            'name': description
+        })
+    return stages
 
 
 def full_pars_olymp():

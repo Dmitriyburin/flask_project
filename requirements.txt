@@ -12,3 +12,6 @@ SQLAlchemy-serializer==1.4.1
 Werkzeug==2.0.3
 WTForms==3.0.1
 requests==2.26.0
+PyMySQL==1.0.2
+mysql-connector-python==8.0.27
+mysqlclient==2.1.0

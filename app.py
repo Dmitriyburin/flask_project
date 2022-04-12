@@ -173,13 +173,21 @@ def fav_olymps():
                                current_user=current_user, admins=ADMINS, favourite=True, url_logo=url_logo)
 
 
+@app.route("/olympiad/<int:olymp_id>/delete-stage/<int:stage_id>", methods=['GET', 'POST'])
 @app.route("/olympiad/<int:olymp_id>", methods=['GET', 'POST'])
-def olympiad(olymp_id):
+def olympiad(olymp_id, stage_id=None):
     db_sess = db_session.create_session()
     olympiad = db_sess.query(Olympiads).get(olymp_id)
     favourites = None
     if current_user.is_authenticated:
         favourites = [i.id for i in current_user.olympiads]
+
+    if request.path == f'/olympiad/{olymp_id}/delete-stage/{stage_id}':
+        stage = db_sess.query(Stages).filter_by(id=stage_id).first()
+        db_sess.delete(stage)
+        db_sess.commit()
+        return redirect(f'/olympiad/{olymp_id}')
+
     if request.method == 'POST':
         if request.form['submit_button'] == 'Добавить в избранные':
             user = db_sess.query(Users).filter(Users.email == current_user.email).first()
@@ -189,8 +197,19 @@ def olympiad(olymp_id):
             user = db_sess.query(Users).filter(Users.email == current_user.email).first()
             user.olympiads.remove(olympiad)
             db_sess.commit()
+        if request.form['submit_button'] == 'Добавить':
+            stage = Stages(
+                name='Этап',
+                olympiad_id=olympiad.id
+            )
+            db_sess.add(stage)
+            db_sess.commit()
+        # if request.form['submit_button'] == 'Удалить':
 
-    stages = olympiad.stages
+        return redirect(f'/olympiad/{olymp_id}')
+
+    olympiad.stages.sort(key=lambda x: x.date)
+    stages = list(reversed(olympiad.stages))
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
     return render_template("olympiad.html", olympiad=olympiad, url_style=url_style, admins=ADMINS, stages=stages,

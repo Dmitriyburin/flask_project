@@ -1,4 +1,6 @@
 import datetime
+import gunicorn
+import asyncio
 
 from flask import Flask, render_template, url_for, redirect, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -24,6 +26,17 @@ from forms.search_olympiads import SearchOlympiadForm
 
 from requests import get, post
 
+
+def process_http_request(environ, start_response):
+    status = '200 OK'
+    response_headers = [
+        ('Content-type', 'text/plain; charset=utf-8'),
+    ]
+    start_response(status, response_headers)
+    text = 'Here be dragons'.encode('utf-8')
+    return [text]
+
+
 app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -33,6 +46,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:admin@localhost/ma
 api = Api(app)
 
 db = SQLAlchemy(app)
+
 migrate = Migrate(app, db)
 
 ADMINS = ['123@123']
@@ -93,14 +107,15 @@ def main():
 @app.route("/filters/<subject>/<school_class>/", methods=['GET', 'POST'])
 @app.route("/filters/<subject>/<school_class>/<title>", methods=['GET', 'POST'])
 @app.route("/", methods=['GET', 'POST'])
-def index(subject=None, school_class=None, title=None):
+async def index(subject=None, school_class=None, title=None):
     PER_PAGE = 10
     favourite = False
+    modal = False
 
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
 
-    # add_olymps_to_database()
+    # asyncio.ensure_future(add_olymps_to_database())
     db_sess = db_session.create_session()
     subjects = [sub.name for sub in db_sess.query(Subjects).all()]
 
@@ -110,6 +125,7 @@ def index(subject=None, school_class=None, title=None):
     start = (page - 1) * PER_PAGE
     end = start + PER_PAGE
     olympiads = db_sess.query(Olympiads).all()
+    olympiads = sorted(olympiads, key=lambda olymp: olymp.stages[0].date, reverse=True)
 
     form = SearchOlympiadForm()
     form.subject.choices = [(sub, sub) for i, sub in enumerate(['Все предметы'] + subjects)]
@@ -129,7 +145,6 @@ def index(subject=None, school_class=None, title=None):
 
     if title:
         olympiads = db_sess.query(Olympiads).filter(Olympiads.title.like(f'%{title}%')).all()
-        print(olympiads)
 
     if subject and subject != 'Все предметы':
         subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
@@ -143,7 +158,8 @@ def index(subject=None, school_class=None, title=None):
     olympiads = olympiads[start:end]
     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=subjects,
                            current_user=current_user, admins=ADMINS, classes=school_classes, form=form,
-                           favourite=favourite, pagination=pagination, url_logo=url_logo)
+                           favourite=favourite, pagination=pagination, url_logo=url_logo, modal=modal,
+                           datetime=datetime.datetime)
 
 
 @app.route("/favourite_olympiads")
@@ -178,7 +194,7 @@ def olympiad(olymp_id):
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
     return render_template("olympiad.html", olympiad=olympiad, url_style=url_style, admins=ADMINS, stages=stages,
-                           favourites=favourites, url_logo=url_logo)
+                           favourites=favourites, url_logo=url_logo, datetime=datetime.datetime)
 
 
 @app.route('/process_data/<int:index>/', methods=['POST'])
@@ -212,6 +228,8 @@ def doit(index):
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     url_style = url_for('static', filename='css/style.css')
+    url_logo = url_for('static', filename='img/logo.jpg')
+
     form = RegisterForm()
     for field in form:
         print(field.label().striptags())
@@ -226,12 +244,14 @@ def register():
         login_user(user)
 
         return redirect('/')
-    return render_template("register.html", url_style=url_style, form=form, authorization='Регистрация')
+    return render_template("register.html", url_style=url_style, form=form, authorization='Регистрация',
+                           url_logo=url_logo)
 
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     url_style = url_for('static', filename='css/style.css')
+    url_logo = url_for('static', filename='img/logo.jpg')
     form = LoginForm()
 
     if form.validate_on_submit():
@@ -242,7 +262,7 @@ def login():
             if user.email in ADMINS: user.is_admin = True
             return redirect("/")
     return render_template("register.html", url_style=url_style, form=form, authorization='Вход',
-                           current_user=current_user)
+                           current_user=current_user, url_logo=url_logo)
 
 
 @app.route("/add_user/<int:subj_id>", methods=['GET', 'POST'])

@@ -4,6 +4,7 @@ $light-color: rgba(0,0,0,.55);
 // Базовая настройка
 body {
     font-family: $font-stack;
+    margin-bottom: 160px;
 }
 
 header {
@@ -72,6 +73,20 @@ form {
     margin-bottom: 15px;
 }
 
+// Олимпиада отдельно
+.stages {
+    color: #343a40;
+}
+
+.invalid-feedback {
+    margin-top: -.25rem;
+}
+
+// Пагинация 
+.pagination {
+    
+}
+
 // Поиск
 
 
@@ -111,8 +126,8 @@ form {
         // @extend .ui-menu;
         // @extend .ui-menu-item;
 
-    }
 }
+
 
 
 

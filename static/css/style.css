@@ -1,5 +1,6 @@
 body {
   font-family: "Rubik", sans-serif;
+  margin-bottom: 160px;
 }
 
 header {
@@ -56,6 +57,10 @@ form {
   margin-bottom: 15px;
 }
 
+.stages {
+  color: #343a40;
+}
+
 .ui-menu {
   margin: 0;
   padding: 0;
@@ -83,8 +88,8 @@ form {
   color: #262626;
 }
 
-.subjects-select option:hover {
-  background-color: #f0efef;
+.subjects-select option {
+  text: purple;
 }
 
 .container-register {

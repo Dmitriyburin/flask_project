@@ -1,8 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
 <div class="container olympiad-container">
-    <div class="row">
+    {% set ns = namespace(nearest_stage=None) %}
+    {% for stage in stages[::-1] %}
+        {% if stage.date >= datetime.now().date() %}
+
+            {% set ns.nearest_stage = stage %}
+
+        {% endif %}
+    {% endfor %}
+    Ближайший этап будет через дней: {{ (ns.nearest_stage.date - datetime.now().date()).days }}
+    <div class="row align-items-start justify-content-start">
+        <div class="col">
+            {% set time_tooltip = (olympiad.stages[0].date - datetime.now().date()).days %}
+            {% if time_tooltip < 0 %}
+            <div class="alert alert-danger" role="alert">
+                Олимпиада завершена!
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+    
+    <div class="row align-items-start justify-content-start">
         <!-- <div class="col">
             <div class="card mb-2">
                 <div class="card-body card-olymp">
@@ -15,35 +37,59 @@
 
         </div> -->
         <div class="col">
-            <div class="card border border-info shadow-0 mb-3 w-100" style="max-width: 25rem;">
+            <div class="card border border-info shadow-0 mb-3 w-100">
                 <div class="card-header">{{ (olympiad.subjects | map(attribute='name')) | join(', ') }} | {{ [olympiad.school_classes[0], olympiad.school_classes[-1]] | map(attribute='number') | join('-')}} класс</div>
                 <div class="card-body">
                   <h5 class="card-title">{{ olympiad.title }}</h5>
-                  <p class="card-text">{{ olympiad.description}}</p>
                   <a href="{{ olympiad.link }}" class="card-text" target="_blank">Оффициальная ссылка</a>
                 </div>
               </div>
         </div>
+        {% if stages[0] %}
         <div class="col">
-            <div class="card border border-success shadow-0 mb-3 w-100" style="max-width: 25rem;">
+            <div class="card border border-success shadow-0 mb-3 w-100">
                 <div class="card-header">Этапы</div>
                 <div class="card-body card-body-stages">
                     <ol class="list-group list-group-numbered">
                         {% for stage in stages %}
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                           <div class="ms-2 me-auto">
-                            <div class="fw-450">{{stage.name}}</div> 
+                            <div class="fw-450 stages">{{stage.name}}</div> 
+                            {% if stage.description != None%}
                             {{ stage.description }}
+                            {% endif %}
                           </div>
-                          <span class="badge bg-primary rounded-pill fw-normal">{{ stage.date }}</span>
+                          {% set time_tooltip = (stage.date - datetime.now().date()).days %}
+                          {% if time_tooltip < 0 %}
+                          {% set time_tooltip = 'Этап завершен' %}
+                          {% else %}
+                          {% set time_tooltip = 'Осталось дней: ' ~ time_tooltip ~ '' %}
+                          {% endif %}
+                          <a href="#" class="badge bg-primary rounded-pill fw-normal" data-mdb-toggle="tooltip" title="{{time_tooltip}}">{{ stage.date }}</a>
+
                         </li>
                         {% endfor %}
                     </ol>
                 </div>
-              </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
+    {% if olympiad.description %}
+    <div class="row justify-content-center">
+        <div class="col text-center">
+            <div class="card border border-warning shadow-0 mb-3 w-100">
+                <div class="card-header">История и описание</div>
+                <div class="card-body">
+                  <p class="card-text">{{ olympiad.description}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
-    {% if current_user.email in admins %}
+
+    <!-- {% if current_user.email in admins %}
 
     <form action="/process_data/1/" method="POST">
         <input type="submit" class="btn btn-warning" value="Изменить">
@@ -55,7 +101,7 @@
 
     </form>
 
-    {% endif %}
+    {% endif %} -->
 
     {% if current_user.is_authenticated %}
     {% if olympiad.id in favourites %}

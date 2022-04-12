@@ -41,12 +41,14 @@
                             {{ form.school_class(class='form-select', id='schoolClassID')}}
                         </p>
 
+                        
                         <p>
-                            {{ form.title(class='form-control rounded select-input', id='search_olympiad', type='text') }}
-                            <!-- <div class="input-group rounded">
-                                <input type="search" class="form-control rounded" placeholder="Название" aria-label="search" aria-describedby="search-addon" />
-        
-                            </div> -->
+                                {{ form.date(class='form-control', placeholder='Дата') }}
+                        </p>
+                        
+                        <p>
+                            {{ form.title(class='form-control rounded select-input', id='search_olympiad', type='text', placeholder='Ключевое слово') }}
+ 
                         </p>
 
                         <p>
@@ -89,6 +91,15 @@
       }
       </script>
 
+    <script type="text/javascript">
+        $(function() {
+            $('#datepicker').datepicker({
+                orientation: 'bottom'
+            });
+
+        });
+    </script>
+
     <script>
         $( function() {
           var availableTags = [
@@ -97,7 +108,7 @@
               {% endfor %}
           ];
           var results = $( "#search_olympiad" ).autocomplete({
-            source: availableTags, minLength: 5
+            source: availableTags, minLength: 4
           });
           response(results.slice(0, 10));
         } );

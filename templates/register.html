@@ -8,24 +8,43 @@
         <div class="label-register">
             <p class="p-register">{{ authorization }}</p>
         </div>
-        <form action="" method="post" novalidate>
+        <form class="row g-3 needs-validation" action="" method="post"  novalidate>
             <div>
                 {{ form.csrf_token }}
             </div>
-            {% for field in form if field.name not in ['csrf_token', 'submit', 'remember_me'] %}
+            <div class="col">
+                {% for field in form if field.name not in ['csrf_token', 'submit', 'remember_me'] %}
                 <div class="form-outline mb-4">
                     <!-- <label class="form-label" for="form12">{{ field.label() }}</label> -->
                     {{ field(class='form-control field-register', id='form1', type='text', placeholder=field.label().striptags()) }}
         
                 </div>
-                {% for error in field.errors %}
-                        <div class="alert alert-danger">{{ error }}</div>
+
                 {% endfor %}
-            {% endfor %}
-            {{ form.submit(class='btn btn-primary', value=authorization)}}
+                {{ form.submit(class='btn btn-primary', value=authorization)}}
+            </div>
+            
         </form>
     </div>
     
 </div>
+<script>
+    (() => {
+  'use strict';
 
+  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+  const forms = document.querySelectorAll('.needs-validation');
+
+  // Loop over them and prevent submission
+  Array.prototype.slice.call(forms).forEach((form) => {
+    form.addEventListener('submit', (event) => {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    }, false);
+  });
+})();
+</script>
 {% endblock %}

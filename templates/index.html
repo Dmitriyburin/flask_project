@@ -13,13 +13,11 @@
                     <div class="card-body card-olymp favourite">
                         <h6 class="card-subtitle mb-1 text-muted">{{ (olymp.subjects | map(attribute='name')) | join(', ') }} | {{ [olymp.school_classes[0], olymp.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
                         <a href='/olympiad/{{ olymp.id }}' class="card-title">{{ olymp.title }}</a>
-                        <p class="card-text">{{ olymp.description}}</p>
                     </div>
                 {% else %}
                     <div class="card-body card-olymp">
                         <h6 class="card-subtitle mb-1 text-muted">{{ (olymp.subjects | map(attribute='name')) | join(', ') }} | {{ [olymp.school_classes[0], olymp.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
                         <a href='/olympiad/{{ olymp.id }}' class="card-title">{{ olymp.title }}</a>
-                        <p class="card-text">{{ olymp.description}}</p>
                     </div>
                 {% endif %}
             </div>

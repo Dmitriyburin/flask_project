@@ -26,13 +26,37 @@
             type="text/css"
             href="{{ url_style }}"
         />
-        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/solid.css" integrity="sha384-v2Tw72dyUXeU3y4aM2Y0tBJQkGfplr39mxZqlTBDUZAb9BGoC40+rdFCG0m10lXk" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/fontawesome.css" integrity="sha384-q3jl8XQu1OpdLgGFvNRnPdj5VIlCvgsDQTQB6owSOHWlAurxul7f+JpUOVdAiJ5P" crossorigin="anonymous"> 
-
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/brands.css" integrity="sha384-IiIL1/ODJBRTrDTFk/pW8j0DUI5/z9m1KYsTm/RjZTNV8RHLGZXkUDwgRRbbQ+Jh" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/fontawesome.css" integrity="sha384-q3jl8XQu1OpdLgGFvNRnPdj5VIlCvgsDQTQB6owSOHWlAurxul7f+JpUOVdAiJ5P" crossorigin="anonymous">  
+        
+       
         <title>{{ title }}</title>
     </head>
     <body>
+      <!-- Favourite Modal -->
+      <div class="modal fade" id="favouriteModal" tabindex="-1" aria-labelledby="favouriteModalLabel" aria-hidden="true" data-backdrop="false">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="favouriteModalLabel">Авторизируйтесь, чтобы продолжить</h5>
+              <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <div>
+                <a href="/login" type="button" class="btn btn-primary px-3 me-2 ">
+                  Вход
+                </a>
+                <a href="/register" type="button" class="btn btn-primary me-3">
+                  Регистрация
+                </a>
+              </div>
 
+              <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Закрыть</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
         <header>
           <!-- Navbar -->
@@ -57,8 +81,8 @@
                 <!-- Navbar brand -->
                 <a class="navbar-brand mt-2 mt-lg-0" href="/">
                   <img
-                    src="https://mdbcdn.b-cdn.net/img/logo/mdb-transaprent-noshadows.webp"
-                    height="15"
+                    src="{{ url_logo }}"
+                    height="40"
                     alt="MDB Logo"
                     loading="lazy"
                   />
@@ -69,21 +93,31 @@
                     <a class="nav-link" href="/">Основная</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="/favourite_olympiads">Избранные</a>
+                    <a class="nav-link" href="/favourite_olympiads" {% if not current_user.is_authenticated%} data-mdb-toggle="modal" data-mdb-target="#favouriteModal" {% endif %}>Избранные</a>
                   </li>
                 </ul>
+                
                 <!-- Left links -->
               </div>
               <!-- Collapsible wrapper -->
 
               <!-- Right elements -->
               <div class="d-flex align-items-center">
-
+                <div class="input-group">
+                  <div class="form-outline">
+                    <input type="search" id="form1" class="form-control" />
+                    <label class="form-label" for="form1">Search</label>
+                  </div>
+                  <button type="button" class="btn btn-primary">
+                    <i class="fab fa-search"></i>
+                    <i class="fas fa-search"></i>
+                  </button>
+                </div>
                 <!-- Avatar -->
                 {% if current_user.is_authenticated %}
-                <div class="dropdown avatar">
+                <li class="nav-item dropdown avatar">
                   <a
-                    class="dropdown-toggle d-flex align-items-center hidden-arrow"
+                    class="nav-link dropdown-toggle d-flex align-items-center"
                     href="#"
                     id="navbarDropdownMenuAvatar"
                     role="button"
@@ -93,7 +127,7 @@
                     <img
                       src="{{ current_user.avatar(35) }}"
                       class="rounded-circle"
-                      height="40"
+                      height="35"
                       alt="ava"
                       loading="lazy"
                     />
@@ -112,7 +146,7 @@
                       <a class="dropdown-item" href="/logout">Logout</a>
                     </li>
                   </ul>
-                </div>
+                </li>
                 {% else %}
                 <div class="d-flex align-items-center">
                   <a href="/login" type="button" class="btn btn-link px-3 me-2">
@@ -145,4 +179,74 @@
         <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/brands.js" integrity="sha384-sCI3dTBIJuqT6AwL++zH7qL8ZdKaHpxU43dDt9SyOzimtQ9eyRhkG3B7KMl6AO19" crossorigin="anonymous"></script>
 
     </body>
+
+    <footer class="text-center text-white fixed-bottom" style="background-color: #f1f1f1;">
+      <!-- Grid container -->
+      <div class="container pt-4">
+        <!-- Section: Social media -->
+        <section class="mb-4">
+          <!-- Facebook -->
+          <a
+            class="btn btn-link btn-floating btn-lg text-dark m-1"
+            href="#!"
+            role="button"
+            data-mdb-ripple-color="dark"
+            ><i class="fab fa-facebook-f"></i
+          ></a>
+    
+          <!-- Twitter -->
+          <a
+            class="btn btn-link btn-floating btn-lg text-dark m-1"
+            href="#!"
+            role="button"
+            data-mdb-ripple-color="dark"
+            ><i class="fab fa-twitter"></i
+          ></a>
+    
+          <!-- Google -->
+          <a
+            class="btn btn-link btn-floating btn-lg text-dark m-1"
+            href="#!"
+            role="button"
+            data-mdb-ripple-color="dark"
+            ><i class="fab fa-google"></i
+          ></a>
+    
+          <!-- Instagram -->
+          <a
+            class="btn btn-link btn-floating btn-lg text-dark m-1"
+            href="#!"
+            role="button"
+            data-mdb-ripple-color="dark"
+            ><i class="fab fa-instagram"></i
+          ></a>
+    
+          <!-- Linkedin -->
+          <a
+            class="btn btn-link btn-floating btn-lg text-dark m-1"
+            href="#!"
+            role="button"
+            data-mdb-ripple-color="dark"
+            ><i class="fab fa-linkedin"></i
+          ></a>
+          <!-- Github -->
+          <a
+            class="btn btn-link btn-floating btn-lg text-dark m-1"
+            href="#!"
+            role="button"
+            data-mdb-ripple-color="dark"
+            ><i class="fab fa-github"></i
+          ></a>
+        </section>
+        <!-- Section: Social media -->
+      </div>
+      <!-- Grid container -->
+    
+      <!-- Copyright -->
+      <div class="text-center text-dark p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+        © 2022 Copyright:
+        <a class="text-dark" href="http://www.school399.ru/" target="_blank">Гимназия 399</a>
+      </div>
+      <!-- Copyright -->
+    </footer>
 </html>

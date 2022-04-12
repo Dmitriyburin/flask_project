@@ -7,8 +7,7 @@ from .olympiads_reqparse import parser
 from .olympiads_to_subjects import Subjects, olympiads_to_subjects
 from .olympiads_to_class import SchoolClasses
 from .olympiads_to_stages import Stages
-from .parser import full_pars_olymp
-
+from .parser import main
 from pprint import pprint
 
 
@@ -79,39 +78,47 @@ class OlympiadsListResource(Resource):
         return jsonify({'success': 'OK'})
 
 
-def add_olymps_to_database():
+async def add_olymps_to_database():
     session = db_session.create_session()
-    olymps = full_pars_olymp()
-    pprint(olymps)
+    olymps = await main()
+    print(olymps)
+    count_success = 0
     for olymp_dict in olymps:
-        links = olymp_dict['links']
-        olymp = Olympiads(
-            title=olymp_dict['title'],
-            # school_class=', '.join(olymp_dict['school_class']),
-            description='описание',
-            duration=120,
-            link=links.get('Сайт', 'ссылка'),
-        )
-        for sub in olymp_dict['subject']:
-            subject = session.query(Subjects).filter(Subjects.name.like(f'%{sub.lower()}%')).first()
-            if subject:
-                olymp.subjects.append(subject)
-
-        school_classes = [session.query(SchoolClasses).filter(SchoolClasses.number == sch_cl).first()
-                          for sch_cl in range(olymp_dict['school_class'][0], olymp_dict['school_class'][-1] + 1)]
-        for school_class in school_classes:
-            print(school_class)
-            olymp.school_classes.append(school_class)
-
-        for stage_info in olymp_dict['stages']:
-            stage = Stages(
-                name=stage_info['name'],
-                date=stage_info['date'][0]
+        try:
+            links = olymp_dict['links']
+            olymp = Olympiads(
+                title=olymp_dict['title'],
+                # school_class=', '.join(olymp_dict['school_class']),
+                description=olymp_dict['history'],
+                link=links.get('Сайт', 'ссылка'),
             )
-            olymp.stages.append(stage)
+            for sub in olymp_dict['subject']:
+                subject = session.query(Subjects).filter(Subjects.name.like(f'%{sub.lower()}%')).first()
+                if subject:
+                    olymp.subjects.append(subject)
+            if not len(olymp.subjects):
+                continue
 
-        session.add(olymp)
-        session.commit()
+            school_classes = [session.query(SchoolClasses).filter(SchoolClasses.number == sch_cl).first()
+                              for sch_cl in range(olymp_dict['school_class'][0], olymp_dict['school_class'][-1] + 1)]
+            for school_class in school_classes:
+                olymp.school_classes.append(school_class)
+
+            for stage_info in olymp_dict['stages']:
+                stage = Stages(
+                    name=stage_info['name'],
+                    date=stage_info['date'][0]
+                )
+                olymp.stages.append(stage)
+
+            session.add(olymp)
+            session.commit()
+            count_success += 1
+            print(count_success)
+        except Exception as e:
+            print(e)
+            session.rollback()
+            continue
 
 
 def add_subject_api(olympiad_id, subject_id):

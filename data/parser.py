@@ -1,9 +1,11 @@
 import requests
 import re
 from bs4 import BeautifulSoup
+from fake_useragent import UserAgent
 import asyncio
 import httpx
 import datetime
+from selenium import webdriver  # $ pip install selenium
 
 full_olympiads_list = []
 
@@ -125,5 +127,56 @@ def lol_parse():
         print(title, school_class)
 
 
+def parse_olimpiada_ru(region_number=78):
+    ua = UserAgent()
+    headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,'
+                  'image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'User-Agent': ua.random
+    }
+
+    cookies = {
+        'region': f'{region_number}'
+    }
+
+    EXE_PATH = r'C:\Program Files\Google\Chrome\Application\chromedriver\chromedriver.exe'
+    driver = webdriver.Chrome(executable_path=EXE_PATH)
+
+    driver.get('https://olimpiada.ru/activities')
+    # Добавление куки для определения региона: 78 - Санкт-Петербург
+    for key, value in cookies.items():
+        driver.add_cookie({'name': key, 'value': value})
+    driver.get('https://olimpiada.ru/activities')
+
+    print(driver.get_cookie('region'))
+
+    total_height = 100000
+    for i in range(1, total_height, 20):
+        driver.execute_script("window.scrollTo(0, {});".format(i))
+
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+
+    olympiads = soup.find('div', id='megalist').find_all('div', class_='olimpiada')
+    print(olympiads)
+    olympiads_dict = {}
+    for i, olympiad in enumerate(olympiads):
+        try:
+            title = olympiad.find('span', class_='headline').text
+            last_s = olympiad.find('span', class_='headline red').text
+            subjects = olympiad.find('div', class_='subject_tags').text
+            school_class = olympiad.find('span', class_='classes_dop').text
+            # description = olympiad.find('a', class_='olimp_desc').text
+            print(i, {'title': title, 'last': last_s, 'subjects': subjects, 'school_class': school_class,
+                      'description': None})
+        except Exception as e:
+            print(f'ОШИБКА: {e}')
+            continue
+    #
+    # response = requests.get(f'https://olimpiada.ru/activities', headers=headers, cookies=cookies)
+    # soup = BeautifulSoup(response.text, 'html.parser')
+    # print(soup.find('h1', id='megatitle'))
+
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    parse_2(78)

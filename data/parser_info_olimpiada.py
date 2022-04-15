@@ -19,7 +19,8 @@ async def pars_olymps(page_link, olympiads_list):
         olympiads = table_olympiads.find_all('a', class_='black_hover_blue')
         subjects = table_olympiads.find_all('span', class_='light_grey')
         for i, olymp in enumerate(olympiads):
-
+            if i > 2:
+                break
             separate_number_page = olymp['href'].split('/')[2]
             separate_page_dict = await parse_separate_page(separate_number_page, client)
             olymp_info = subjects[i].text.split(' |')
@@ -103,11 +104,11 @@ async def parse_history(link, client):
     return text
 
 
-async def main():
+async def main_info_olimpiada_ru():
     global full_olympiads_list
     queue = asyncio.Queue()
     task_list = []
-    for i in range(1, 5):
+    for i in range(1, 2):
         task = asyncio.create_task(
             pars_olymps(f'https://info.olimpiada.ru/activities/single/random/page/{i}', full_olympiads_list))
         task_list.append(task)
@@ -151,7 +152,7 @@ def parse_olimpiada_ru(region_number=78):
     print(driver.get_cookie('region'))
 
     total_height = 100000
-    for i in range(1, total_height, 20):
+    for i in range(1, total_height, 15):
         driver.execute_script("window.scrollTo(0, {});".format(i))
 
     html = driver.page_source
@@ -166,6 +167,7 @@ def parse_olimpiada_ru(region_number=78):
             last_s = olympiad.find('span', class_='headline red').text
             subjects = olympiad.find('div', class_='subject_tags').text
             school_class = olympiad.find('span', class_='classes_dop').text
+
             # description = olympiad.find('a', class_='olimp_desc').text
             print(i, {'title': title, 'last': last_s, 'subjects': subjects, 'school_class': school_class,
                       'description': None})
@@ -179,4 +181,4 @@ def parse_olimpiada_ru(region_number=78):
 
 
 if __name__ == '__main__':
-    parse_2(78)
+    parse_olimpiada_ru(78)

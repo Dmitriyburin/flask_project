@@ -107,7 +107,7 @@ def main():
 @app.route("/filters/<subject>/<school_class>/", methods=['GET', 'POST'])
 @app.route("/filters/<subject>/<school_class>/<title>", methods=['GET', 'POST'])
 @app.route("/", methods=['GET', 'POST'])
-async def index(subject=None, school_class=None, title=None):
+def index(subject=None, school_class=None, title=None):
     PER_PAGE = 10
     favourite = False
     modal = False
@@ -115,7 +115,7 @@ async def index(subject=None, school_class=None, title=None):
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
 
-    # asyncio.ensure_future(add_olymps_to_database())
+    # asyncio.run(add_olymps_to_database())
     db_sess = db_session.create_session()
     subjects = [sub.name for sub in db_sess.query(Subjects).all()]
 
@@ -130,11 +130,18 @@ async def index(subject=None, school_class=None, title=None):
     form = SearchOlympiadForm()
     form.subject.choices = [(sub, sub) for i, sub in enumerate(['Все предметы'] + subjects)]
     form.school_class.choices = [(cls, cls) for i, cls in enumerate(['Все классы'] + school_classes)]
-    if form.validate_on_submit():
-        subs = form.subject.data
-        classes = form.school_class.data
-        title = form.title.data
-        return redirect(f'/filters/{subs}/{classes}/{title}')
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            subs = form.subject.data
+            classes = form.school_class.data
+            title = form.title.data if form.title.data is not None else ''
+            return redirect(f'/filters/{subs}/{classes}/{title}')
+        elif form.title.data:
+            subs = "Все предметы"
+            classes = "Все классы"
+            title = form.title.data if form.title.data is not None else ''
+            return redirect(f'/filters/{subs}/{classes}/{title}')
 
     if request.path == '/favourite_olympiads':
         if current_user.is_authenticated:
@@ -165,12 +172,21 @@ async def index(subject=None, school_class=None, title=None):
 @app.route("/favourite_olympiads")
 def fav_olymps():
     if current_user.is_authenticated:
+        form = SearchOlympiadForm()
+
+        if request.method == 'POST':
+            if form.title.data:
+                subs = "Все предметы"
+                classes = "Все классы"
+                title = form.title.data
+                return redirect(f'/filters/{subs}/{classes}/{title}')
+
         url_style = url_for('static', filename='css/style.css')
         url_logo = url_for('static', filename='img/logo.jpg')
 
         olympiads = current_user.olympiads
         return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS,
-                               current_user=current_user, admins=ADMINS, favourite=True, url_logo=url_logo)
+                               current_user=current_user, admins=ADMINS, favourite=True, url_logo=url_logo, form=form)
 
 
 @app.route("/olympiad/<int:olymp_id>/delete-stage/<int:stage_id>", methods=['GET', 'POST'])
@@ -179,6 +195,8 @@ def olympiad(olymp_id, stage_id=None):
     db_sess = db_session.create_session()
     olympiad = db_sess.query(Olympiads).get(olymp_id)
     favourites = None
+    form = SearchOlympiadForm()
+
     if current_user.is_authenticated:
         favourites = [i.id for i in current_user.olympiads]
 
@@ -189,6 +207,12 @@ def olympiad(olymp_id, stage_id=None):
         return redirect(f'/olympiad/{olymp_id}')
 
     if request.method == 'POST':
+        if form.title.data:
+            subs = "Все предметы"
+            classes = "Все классы"
+            title = form.title.data
+            return redirect(f'/filters/{subs}/{classes}/{title}')
+
         if request.form['submit_button'] == 'Добавить в избранные':
             user = db_sess.query(Users).filter(Users.email == current_user.email).first()
             user.olympiads.append(olympiad)
@@ -213,7 +237,7 @@ def olympiad(olymp_id, stage_id=None):
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
     return render_template("olympiad.html", olympiad=olympiad, url_style=url_style, admins=ADMINS, stages=stages,
-                           favourites=favourites, url_logo=url_logo, datetime=datetime.datetime)
+                           favourites=favourites, url_logo=url_logo, datetime=datetime.datetime, form=form)
 
 
 @app.route('/process_data/<int:index>/', methods=['POST'])
@@ -249,39 +273,56 @@ def register():
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
 
-    form = RegisterForm()
-    for field in form:
-        print(field.label().striptags())
-    if form.validate_on_submit():
-        print(post('http://127.0.0.1:5000/api/v2/users',
-                   json={'email': form.email.data,
-                         'password': form.password.data,
-                         'name': form.name.data,
-                         'school_class': form.school_class.data}).json())
-        db_sess = db_session.create_session()
-        user = db_sess.query(Users).filter(Users.email == form.email.data).first()
-        login_user(user)
+    form_login = RegisterForm()
+    form = SearchOlympiadForm()
 
-        return redirect('/')
-    return render_template("register.html", url_style=url_style, form=form, authorization='Регистрация',
-                           url_logo=url_logo)
+    if request.method == 'POST':
+        if form.title.data:
+            subs = "Все предметы"
+            classes = "Все классы"
+            title = form.title.data
+            return redirect(f'/filters/{subs}/{classes}/{title}')
+
+        if form_login.validate_on_submit():
+            print(post('http://127.0.0.1:5000/api/v2/users',
+                       json={'email': form_login.email.data,
+                             'password': form_login.password.data,
+                             'name': form_login.name.data,
+                             'school_class': form.school_class.data}).json())
+            db_sess = db_session.create_session()
+            user = db_sess.query(Users).filter(Users.email == form_login.email.data).first()
+            login_user(user)
+            return redirect('/')
+    return render_template("register.html", url_style=url_style, form_login=form_login, authorization='Регистрация',
+                           url_logo=url_logo, form=form)
 
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
-    form = LoginForm()
+    form_login = LoginForm()
+    form = SearchOlympiadForm()
+    if request.method == 'POST':
+        if form.title.data:
+            subs = "Все предметы"
+            classes = "Все классы"
+            title = form.title.data
+            return redirect(f'/filters/{subs}/{classes}/{title}')
 
-    if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        user = db_sess.query(Users).filter(Users.email == form.email.data).first()
-        if user and user.check_password(form.password.data):
-            login_user(user, remember=form.remember_me.data)
-            if user.email in ADMINS: user.is_admin = True
-            return redirect("/")
-    return render_template("register.html", url_style=url_style, form=form, authorization='Вход',
-                           current_user=current_user, url_logo=url_logo)
+        if form_login.validate_on_submit():
+            db_sess = db_session.create_session()
+            user = db_sess.query(Users).filter(Users.email == form_login.email.data).first()
+            if user and user.check_password(form_login.password.data):
+                login_user(user, remember=form_login.remember_me.data)
+                if user.email in ADMINS: user.is_admin = True
+                return redirect("/")
+    return render_template("register.html", url_style=url_style, form_login=form_login, authorization='Вход',
+                           current_user=current_user, url_logo=url_logo, form=form)
+
+
+def parse_olympiads():
+    asyncio.run(add_olymps_to_database())
 
 
 @app.route("/add_user/<int:subj_id>", methods=['GET', 'POST'])

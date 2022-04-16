@@ -1,6 +1,6 @@
 import datetime
-import gunicorn
 import asyncio
+from celery import Celery
 
 from flask import Flask, render_template, url_for, redirect, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -40,6 +40,11 @@ def process_http_request(environ, start_response):
 app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
+app.config['CELERY_BROKER_URL'] = 'redis://127.0.0.1:6379'
+app.config['CELERY_RESULT_BACKEND'] = 'redis://127.0.0.1:6379'
+celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery.conf.update(app.config)
+
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:admin@localhost/main'
@@ -48,6 +53,7 @@ api = Api(app)
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
+
 
 ADMINS = ['123@123']
 
@@ -91,6 +97,15 @@ SUBJECTS = {'Математика': 1,
             }
 
 
+@celery.task
+def my_background_task():
+    # some long running task here
+    print('hello')
+
+
+task = my_background_task.delay()
+
+
 def main():
     db_session.global_init()
     # app.register_blueprint(jobs_api.blueprint)
@@ -115,7 +130,7 @@ def index(subject=None, school_class=None, title=None):
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
 
-    # asyncio.run(add_olymps_to_database())
+    my_background_task.delay()
     db_sess = db_session.create_session()
     subjects = [sub.name for sub in db_sess.query(Subjects).all()]
 

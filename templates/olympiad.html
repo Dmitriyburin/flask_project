@@ -4,7 +4,7 @@
 
 <div class="container olympiad-container">
     {% set ns = namespace(nearest_stage=None) %}
-    {% for stage in stages[::-1] %}
+    {% for stage in stages %}
         {% if stage.date >= datetime.now().date() %}
 
             {% set ns.nearest_stage = stage %}
@@ -12,8 +12,11 @@
         {% endif %}
     {% endfor %}
     {% if ns.nearest_stage.date %}
-        Ближайший этап будет через дней: {{ (ns.nearest_stage.date - datetime.now().date()).days }}
-    {% endif %}
+        <div class="alert alert-success" role="alert">
+            Ближайший этап будет через дней: {{ (ns.nearest_stage.date - datetime.now().date()).days }}
+
+        </div>
+    {% else %}
     <div class="row align-items-start justify-content-start">
         <div class="col">
             {% set time_tooltip = (olympiad.stages[0].date - datetime.now().date()).days %}
@@ -25,6 +28,8 @@
         </div>
 
     </div>
+    {% endif %}
+    
     
     <div class="row align-items-start justify-content-start">
         <!-- <div class="col">
@@ -101,10 +106,11 @@
 
                         
                         {% endfor %}
+                        {% if current_user.email in admins %}
                         <form method="post" action="">
                             <input href="" type="submit" name="submit_button" class="btn btn-success w-100" value="Добавить">
-
                         </form>
+                        {% endif %}
                     </ol>
                 </div>
             </div>

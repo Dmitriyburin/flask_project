@@ -1,17 +1,1 @@
-Flask==2.0.2
-Flask-Admin==1.6.0
-Flask-Login==0.5.0
-Flask-Migrate==3.1.0
-flask-paginate==2022.1.8
-Flask-RESTful==0.3.9
-Flask-SQLAlchemy==2.5.1
-Flask-WTF==1.0.0
-bs4==0.0.1
-SQLAlchemy==1.4.31
-SQLAlchemy-serializer==1.4.1
-Werkzeug==2.0.3
-WTForms==3.0.1
-requests==2.26.0
-PyMySQL==1.0.2
-mysql-connector-python==8.0.27
-mysqlclient==2.1.0
+Flask Flask-Admin Flask-Login Flask-Migrate flask-paginate Flask-RESTful Flask-SQLAlchemy Flask-WTF bs4 SQLAlchemy SQLAlchemy-serializer Werkzeug WTForms requests PyMySQL mysql-connector-python mysqlclient

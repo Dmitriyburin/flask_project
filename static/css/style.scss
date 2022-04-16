@@ -32,6 +32,14 @@ li {
     list-style-type: none;
 }
 
+.ml-5 {
+    margin-left: 5px;
+}
+
+.ml-30 {
+    margin-left: 30px;
+}
+
 // Header
 .avatar {
     img{
@@ -80,6 +88,10 @@ form {
 
 .invalid-feedback {
     margin-top: -.25rem;
+}
+
+.accordion-button:after {
+    display: none;
 }
 
 // Пагинация 

@@ -27,6 +27,14 @@ li {
   list-style-type: none;
 }
 
+.ml-5 {
+  margin-left: 5px;
+}
+
+.ml-30 {
+  margin-left: 30px;
+}
+
 .left-navigation select {
   margin-bottom: 10px;
 }
@@ -59,6 +67,14 @@ form {
 
 .stages {
   color: #343a40;
+}
+
+.invalid-feedback {
+  margin-top: -.25rem;
+}
+
+.accordion-button:after {
+  display: none;
 }
 
 .ui-menu {

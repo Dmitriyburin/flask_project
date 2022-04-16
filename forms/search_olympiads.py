@@ -10,3 +10,4 @@ class SearchOlympiadForm(FlaskForm):
     title = SearchField('Название')
     date = DateField('Дата', default=datetime.datetime.now)
     submit = SubmitField('Submit')
+

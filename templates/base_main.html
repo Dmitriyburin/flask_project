@@ -12,42 +12,19 @@
                         <div>
                             {{ form.csrf_token }}
                         </div>
-                        <!-- <div class="dropdown">
-                            <button
-                                class="btn btn-primary dropdown-toggle w-100"
-                                type="button"
-                                id="dropdownMenuButton"
-                                data-mdb-toggle="dropdown"
-                                aria-expanded="false"
-                            >
-                                Выбрать предмет
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                <li><a class="dropdown-item" href="/subjects/all">Все предметы</a></li>
-                                {% for sub in subjects %}
-                                    <li><a class="dropdown-item" href="/subjects/{{ sub }}">{{ sub }}</a></li>
-                                {% endfor %}
-        
-                            </ul>
-
-                        </div> -->
                         <p>
-
                             {{ form.subject(class='form-select subjects-select', id='subjectID')}}
-
-
                         </p>
                         <p>
                             {{ form.school_class(class='form-select', id='schoolClassID')}}
                         </p>
-
-                        
+                    
                         <p>
                                 {{ form.date(class='form-control', placeholder='Дата') }}
                         </p>
                         
                         <p>
-                            {{ form.title(class='form-control rounded select-input', id='search_olympiad', type='text', placeholder='Ключевое слово') }}
+                            <!-- {{ form.title(class='form-control rounded select-input', id='search_olympiad', type='text', placeholder='Ключевое слово') }} -->
  
                         </p>
 

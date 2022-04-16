@@ -1,3 +1,4 @@
+import asyncio
 from flask import jsonify, request
 from flask_restful import abort, Resource
 
@@ -81,10 +82,11 @@ class OlympiadsListResource(Resource):
 async def add_olymps_to_database():
     session = db_session.create_session()
     olymps = await main()
-    print(olymps)
+    print('ОЛИМПИАДЫ', olymps)
     count_success = 0
     for olymp_dict in olymps:
         try:
+            print(olymp_dict)
             links = olymp_dict['links']
             olymp = Olympiads(
                 title=olymp_dict['title'],
@@ -93,6 +95,7 @@ async def add_olymps_to_database():
                 link=links.get('Сайт', 'ссылка'),
             )
             for sub in olymp_dict['subject']:
+
                 subject = session.query(Subjects).filter(Subjects.name.like(f'%{sub.lower()}%')).first()
                 if subject:
                     olymp.subjects.append(subject)

@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+# /usr/bin/env python
 # -*- coding: utf-8 -*-
 import datetime
 import asyncio
@@ -15,6 +15,7 @@ from flask_paginate import Pagination, get_page_parameter
 from flask_admin import Admin, expose, AdminIndexView, helpers
 from flask_admin.contrib.sqlamodel import ModelView
 
+from data.config import USER, PASSWORD, HOST, PORT, DATABASE
 from data import db_session, olympiads_resource, users_resources
 from data.olympiads import Olympiads
 from data.users import Users
@@ -47,7 +48,8 @@ login_manager.init_app(app)
 
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:admin@localhost/main'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{0}:{1}@{2}/{3}'.format(
+        USER, PASSWORD, HOST, DATABASE) 
 api = Api(app)
 db = SQLAlchemy(app)
 
@@ -120,8 +122,8 @@ def index(subject=None, school_class=None, title=None):
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
 
-
     db_sess = db_session.create_session()
+    print(db_session, db_sess, dir(db_session))
     subjects = [sub.name for sub in db_sess.query(Subjects).all()]
 
     school_classes = db_sess.query(SchoolClasses).all()

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 import sqlalchemy.ext.declarative as dec
 from sqlalchemy import create_engine
 
+from data.config import USER, PASSWORD, HOST, PORT, DATABASE
 
 SqlAlchemyBase = dec.declarative_base()
 
@@ -17,14 +18,13 @@ def global_init():
         return
     
     # This engine just used to query for list of databases
-    mysql_engine = create_engine('mysql://root:admin@localhost/main')
+    mysql_engine = create_engine('mysql://{0}:{1}@{2}:{3}'.format(USER, PASSWORD, HOST, PORT))
+
 
     # Query for existing databases
-    mysql_engine.execute("CREATE DATABASE IF NOT EXISTS main")
-
+    mysql_engine.execute("CREATE DATABASE IF NOT EXISTS {0}".format(DATABASE))
     # Go ahead and use this engine
-    engine = create_engine('mysql://root:admin@localhost/main')
-
+    engine = create_engine('mysql://{0}:{1}@{2}:{3}/{4}'.format(USER, PASSWORD, HOST, PORT, DATABASE))
     __factory = orm.sessionmaker(bind=engine)
 
     from . import __all_models

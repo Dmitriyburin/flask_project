@@ -3,7 +3,7 @@ import sqlalchemy.orm as orm
 from sqlalchemy.orm import Session
 import sqlalchemy.ext.declarative as dec
 from sqlalchemy import create_engine
-from .gitignore import user, password, host, port, database
+
 
 SqlAlchemyBase = dec.declarative_base()
 
@@ -15,15 +15,15 @@ def global_init():
 
     if __factory:
         return
-
+    
     # This engine just used to query for list of databases
-    mysql_engine = create_engine('mysql://{0}:{1}@{2}:{3}'.format(user, password, host, port))
+    mysql_engine = create_engine('mysql://root:admin@localhost/main')
 
     # Query for existing databases
-    mysql_engine.execute("CREATE DATABASE IF NOT EXISTS {0} ".format(database))
+    mysql_engine.execute("CREATE DATABASE IF NOT EXISTS main")
 
     # Go ahead and use this engine
-    engine = create_engine('mysql://{0}:{1}@{2}:{3}/{4}'.format(user, password, host, port, database))
+    engine = create_engine('mysql://root:admin@localhost/main')
 
     __factory = orm.sessionmaker(bind=engine)
 
@@ -34,9 +34,12 @@ def global_init():
 
 def create_session() -> Session:
     global __factory
-    return __factory()
+    print(__factory)
+    return __factory
 
-
+if __name__ == '__main__':
+    global_init()
+    create_session()
 """
 from sqlalchemy import create_engine
 from gitignore import user, password, host, port, database

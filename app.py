@@ -19,7 +19,7 @@ from data.olympiads_resource import OlympiadsResource, OlympiadsListResource
 from data.olympiads_to_subjects import Subjects
 from data.olympiads_to_class import SchoolClasses
 from data.olympiads_to_stages import Stages
-from data.olympiads_resource import add_olymps_to_database, add_subject_api, delete_subject_api
+from data.olympiads_resource import add_olymps_to_database, add_subject_api, delete_subject_api, add_olympiad
 
 from forms.user import RegisterForm, LoginForm
 from forms.search_olympiads import SearchOlympiadForm
@@ -107,6 +107,7 @@ SUBJECTS = {'Математика': 1,
 
 def main():
     db_session.global_init()
+
     # app.register_blueprint(jobs_api.blueprint)
     # app.register_blueprint(user_api.blueprint)
     api.add_resource(users_resources.UsersListResource, '/api/v2/users')
@@ -130,6 +131,7 @@ def index(subject=None, school_class=None, title=None):
     url_logo = url_for('static', filename='img/logo.jpg')
 
     # my_background_task.delay()
+    # asyncio.run(add_olymps_to_database())
     db_sess = db_session.create_session()
     subjects = [sub.name for sub in db_sess.query(Subjects).all()]
 
@@ -159,6 +161,12 @@ def index(subject=None, school_class=None, title=None):
             classes = "Все классы"
             title = form.title.data if form.title.data is not None else ''
             return redirect(url_for(f'index', subject=subs, school_class=classes, title=title))
+
+        elif request.form['submit_button'] == 'Добавить олимпиаду':
+            response = add_olympiad().json
+            if response['response'] == 200:
+                olympiad_id = response['olympiad_id']
+                return redirect(url_for(f'olympiad', olymp_id=olympiad_id))
 
     if request.path == '/favourite_olympiads':
         if current_user.is_authenticated:
@@ -200,7 +208,6 @@ def index(subject=None, school_class=None, title=None):
 def fav_olymps():
     if current_user.is_authenticated:
         form = SearchOlympiadForm()
-
         if request.method == 'POST':
             if form.title.data:
                 subs = "Все предметы"
@@ -248,6 +255,11 @@ def olympiad(olymp_id, stage_id=None):
             user = db_sess.query(Users).filter(Users.email == current_user.email).first()
             user.olympiads.remove(olympiad)
             db_sess.commit()
+        if request.form['submit_button'] == 'Удалить олимпиаду':
+            db_sess.delete(olympiad)
+            db_sess.commit()
+            return redirect(url_for(f'index'))
+
         if request.form['submit_button'] == 'Добавить':
             stage = Stages(
                 name='Этап',
@@ -346,6 +358,11 @@ def login():
                 return redirect("/")
     return render_template("register.html", url_style=url_style, form_login=form_login, authorization='Вход',
                            current_user=current_user, url_logo=url_logo, form=form)
+
+
+@app.route("/admin/parse", methods=['GET', 'POST'])
+def parse_admin():
+    asyncio.run(add_olymps_to_database())
 
 
 def parse_olympiads():

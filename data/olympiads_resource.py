@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 from flask import jsonify, request
 from flask_restful import abort, Resource
 
@@ -146,6 +147,27 @@ def delete_subject_api(olympiad_id, subject_id):
     olympiad.subjects.remove(subject)
     session.commit()
     return jsonify({'success': 'OK'})
+
+
+def add_olympiad():
+    try:
+        session = db_session.create_session()
+        olymp = Olympiads(
+            title='Пример загаловка олимпиады',
+            # school_class=', '.join(olymp_dict['school_class']),
+            description='Описание и история олимпиады',
+            link='ссылка на олимпиаду',
+        )
+        olymp.school_classes.append(session.query(SchoolClasses).filter(SchoolClasses.number == 1).first())
+        stage = Stages(
+            name='Имя этапа',
+            date=datetime.date(2025, 1, 1),
+        )
+        olymp.stages.append(stage)
+        session.commit()
+        return jsonify({'response': 200, 'success': 'OK', 'olympiad_id': olymp.id})
+    except Exception as e:
+        return jsonify({'response': 0, 'error': str(e)})
 
 
 if __name__ == '__main__':

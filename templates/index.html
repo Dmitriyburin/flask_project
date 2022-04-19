@@ -6,6 +6,13 @@
       <div class="pagination">
         {{ pagination.links }}
       </div>
+      {% if current_user.is_authenticated %}
+      {% if current_user.email in admins %}
+      <form method="post" action="">
+        <input type="submit" name="submit_button" class="btn btn-warning" value="Добавить олимпиаду">
+      </form>
+      {% endif %}
+      {% endif %}
 
         {% for olymp in olympiads %}
             <div class="card mb-2">

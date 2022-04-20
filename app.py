@@ -47,7 +47,7 @@ login_manager.init_app(app)
 
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:admin@localhost/main'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://ubuntu:ubuntu@localhost/main'
 api = Api(app)
 
 db = SQLAlchemy(app)

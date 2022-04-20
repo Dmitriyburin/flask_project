@@ -1,8 +1,5 @@
-# /usr/bin/env python
-# -*- coding: utf-8 -*-
 import datetime
 import asyncio
-import gunicorn
 from celery import Celery
 
 from flask import Flask, render_template, url_for, redirect, request
@@ -15,16 +12,14 @@ from flask_paginate import Pagination, get_page_parameter
 from flask_admin import Admin, expose, AdminIndexView, helpers
 from flask_admin.contrib.sqlamodel import ModelView
 
-from data.config import USER, PASSWORD, HOST, PORT, DATABASE
-from data import db_session, olympiads_resource, users_resources
+from data import olympiads_resource, users_resources
 from data.olympiads import Olympiads
 from data.users import Users
 from data.olympiads_resource import OlympiadsResource, OlympiadsListResource
 from data.olympiads_to_subjects import Subjects
 from data.olympiads_to_class import SchoolClasses
 from data.olympiads_to_stages import Stages
-from data.olympiads_resource import add_olymps_to_database, add_subject_api, delete_subject_api
-from data.users_resources import registration
+from data.olympiads_resource import add_olymps_to_database, add_subject_api, delete_subject_api, add_olympiad
 
 from forms.user import RegisterForm, LoginForm
 from forms.search_olympiads import SearchOlympiadForm
@@ -45,12 +40,16 @@ def process_http_request(environ, start_response):
 app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
+# app.config['CELERY_BROKER_URL'] = 'redis://127.0.0.1:6379'
+# app.config['CELERY_RESULT_BACKEND'] = 'redis://127.0.0.1:6379'
+# celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+# celery.conf.update(app.config)
 
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{0}:{1}@{2}/{3}'.format(
-    USER, PASSWORD, HOST, DATABASE)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:admin@localhost/main'
 api = Api(app)
+
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
@@ -96,7 +95,17 @@ SUBJECTS = {'Математика': 1,
             }
 
 
+# @celery.task
+# def my_background_task():
+#     # some long running task here
+#     print('hello')
+
+
+# task = my_background_task.delay()
+
+
 def main():
+
     # app.register_blueprint(jobs_api.blueprint)
     # app.register_blueprint(user_api.blueprint)
     api.add_resource(users_resources.UsersListResource, '/api/v2/users')
@@ -119,7 +128,8 @@ def index(subject=None, school_class=None, title=None):
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
 
-    print(db.session)
+    # my_background_task.delay()
+    # asyncio.run(add_olymps_to_database())
     subjects = [sub.name for sub in db.session.query(Subjects).all()]
 
     school_classes = db.session.query(SchoolClasses).all()
@@ -139,12 +149,21 @@ def index(subject=None, school_class=None, title=None):
             subs = form.subject.data
             classes = form.school_class.data
             title = form.title.data if form.title.data is not None else ''
-            return redirect(f'/filters/{subs}/{classes}/{title}')
+            date_olympiad = form.date.data
+            date_option = int(form.date_option.data)
+            return redirect(url_for(f'index', subject=subs, school_class=classes, title=title, date=date_olympiad,
+                                    date_option=date_option))
         elif form.title.data:
             subs = "Все предметы"
             classes = "Все классы"
             title = form.title.data if form.title.data is not None else ''
-            return redirect(f'/filters/{subs}/{classes}/{title}')
+            return redirect(url_for(f'index', subject=subs, school_class=classes, title=title))
+
+        elif request.form['submit_button'] == 'Добавить олимпиаду':
+            response = add_olympiad(db.session).json
+            if response['response'] == 200:
+                olympiad_id = response['olympiad_id']
+                return redirect(url_for(f'olympiad', olymp_id=olympiad_id))
 
     if request.path == '/favourite_olympiads':
         if current_user.is_authenticated:
@@ -164,6 +183,16 @@ def index(subject=None, school_class=None, title=None):
         olympiads = list(filter(lambda x:
                                 int(school_class) in [int(el.number) for el in x.school_classes], olympiads))
 
+    if request.args.get('date') and int(request.args.get('date_option')):
+        form_date = datetime.datetime.strptime(request.args.get('date'), '%Y-%m-%d').date()
+        # olympiads = list(filter(lambda x: any([form_date >= stage.date for stage in x.stages]), olympiads))
+        new_olympiads = []
+        for olympiad in olympiads:
+            for stage in olympiad.stages:
+                if form_date >= stage.date:
+                    new_olympiads.append(olympiad)
+                    break
+        olympiads = new_olympiads[::]
     pagination = Pagination(page=page, total=len(olympiads))
     olympiads = olympiads[start:end]
     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=subjects,
@@ -176,7 +205,6 @@ def index(subject=None, school_class=None, title=None):
 def fav_olymps():
     if current_user.is_authenticated:
         form = SearchOlympiadForm()
-
         if request.method == 'POST':
             if form.title.data:
                 subs = "Все предметы"
@@ -223,6 +251,11 @@ def olympiad(olymp_id, stage_id=None):
             user = db.session.query(Users).filter(Users.email == current_user.email).first()
             user.olympiads.remove(olympiad)
             db.session.commit()
+        if request.form['submit_button'] == 'Удалить олимпиаду':
+            db.session.delete(olympiad)
+            db.session.commit()
+            return redirect(url_for(f'index'))
+
         if request.form['submit_button'] == 'Добавить':
             stage = Stages(
                 name='Этап',
@@ -255,7 +288,7 @@ def doit(index):
 # @app.route("/subjects/<subject>", methods=['GET', 'POST'])
 # def subject(subject):
 #     url_style = url_for('static', filename='css/style.css')
-#     db.session = db.sessionion.create_session()
+#     db_sess = db_session.create_session()
 #     olympiads = db.session.query(Olympiads).all()
 #     school_classes = db.session.query(SchoolClasses).all()
 #     form = SearchOlympiadForm()
@@ -286,11 +319,11 @@ def register():
             return redirect(f'/filters/{subs}/{classes}/{title}')
 
         if form_login.validate_on_submit():
-            json_conf = {'email': form_login.email.data,
-                         'password': form_login.password.data,
-                         'name': form_login.name.data,
-                         'school_class': form.school_class.data}
-            response = registration(json_conf, db.session)
+            print(post('http://127.0.0.1:5000/api/v2/users',
+                       json={'email': form_login.email.data,
+                             'password': form_login.password.data,
+                             'name': form_login.name.data,
+                             'school_class': form.school_class.data}).json())
             user = db.session.query(Users).filter(Users.email == form_login.email.data).first()
             login_user(user)
             return redirect('/')
@@ -319,6 +352,11 @@ def login():
                 return redirect("/")
     return render_template("register.html", url_style=url_style, form_login=form_login, authorization='Вход',
                            current_user=current_user, url_logo=url_logo, form=form)
+
+
+@app.route("/admin/parse", methods=['GET', 'POST'])
+def parse_admin():
+    asyncio.run(add_olymps_to_database())
 
 
 def parse_olympiads():

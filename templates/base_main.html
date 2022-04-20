@@ -20,9 +20,17 @@
                         </p>
                     
                         <p>
-                                {{ form.date(class='form-control', placeholder='Дата') }}
+                            
+                            {{ form.date(class='form-control', placeholder='Дата') }}
+                                
+
                         </p>
-                        
+                        <p> 
+                            <div class="form-check">
+                                {{form.date_option(class='form-check-input')}}
+                                <label class="form-check-label" name="date_option" for="flexCheckDefault">Использовать дату</label>
+                            </div>
+                        </p>
                         <p>
                             <!-- {{ form.title(class='form-control rounded select-input', id='search_olympiad', type='text', placeholder='Ключевое слово') }} -->
  

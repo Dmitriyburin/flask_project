@@ -1,9 +1,6 @@
-{% extends 'admin/base.html' %}
-{% block access_control %}
+{% extends 'admin/master.html' %}
+{% block body %}
+<div class=""></div>
 
-{% if current_user.is_authenticated %}
-<div class="btn-group pull-right">
-    
-</div>
-{% endif %}
+<a href="/admin/parse" class="btn btn-danger">Парсинг олимпиад</a>
 {% endblock %}

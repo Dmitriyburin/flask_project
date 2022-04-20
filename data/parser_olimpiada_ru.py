@@ -59,7 +59,7 @@ def main_olimpiada_ru(region_number=78):
     for request in driver.requests:
         print(request.headers)
     total_height = 100000
-    for i in range(1, total_height, 15):
+    for i in range(1, total_height, 1500):
         driver.execute_script("window.scrollTo(0, {});".format(i))
 
     html = driver.page_source
@@ -127,18 +127,17 @@ def parse_separate_page(link, region_number=78):
     if stages:
         stages_active = soup.find('table', class_='events_for_activity').find_all('tr', class_='notgreyclass')
         stages_past = soup.find('table', class_='events_for_activity').find_all('tr', class_='gray')
-
-        if stages_active:
-            stages_active_lst.extend(parse_stage(stages_active))
-        else:
-            stages_active_lst.append({
+        stages = []
+        stages.extend(stages_active)
+        stages.extend(stages_past)
+        if not stages:
+            stages.append({
                 'name': 'Точные даты неизвестны',
                 'date': [datetime.datetime.now()]
             })
-        if stages_past:
-            stages_past_lst.extend(parse_stage(stages_active))
+
     else:
-        stages_active_lst.append({
+        stages.append({
             'name': 'Точные даты неизвестны',
             'date': [datetime.datetime.now()]
         })
@@ -153,8 +152,8 @@ def parse_separate_page(link, region_number=78):
         history = '\n'.join(list(map(lambda x: x.text, soup.find('div', id='history').find_all('p'))))
 
     stages_active_lst.sort(key=lambda x: x['date'][0])
-    return {'links': {'Сайт': link}, 'stages': list(reversed(stages_active_lst)), 'history': history}, subjects
+    return {'links': {'Сайт': link}, 'stages': list(reversed(stages)), 'history': history}, subjects
 
 
 if __name__ == '__main__':
-    main_olimpiada_ru(78)
+    print(main_olimpiada_ru(78))

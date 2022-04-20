@@ -24,6 +24,7 @@ from data.olympiads_to_subjects import Subjects
 from data.olympiads_to_class import SchoolClasses
 from data.olympiads_to_stages import Stages
 from data.olympiads_resource import add_olymps_to_database, add_subject_api, delete_subject_api
+from data.users_resources import registration
 
 from forms.user import RegisterForm, LoginForm
 from forms.search_olympiads import SearchOlympiadForm
@@ -45,24 +46,21 @@ app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{0}:{1}@{2}/{3}'.format(
-        USER, PASSWORD, HOST, DATABASE) 
+    USER, PASSWORD, HOST, DATABASE)
 api = Api(app)
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
-
 
 ADMINS = ['123@123']
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    db_sess = db_session.create_session()
-    return db_sess.query(Users).get(user_id)
+    return db.session.query(Users).get(user_id)
 
 
 @app.route('/logout')
@@ -99,7 +97,6 @@ SUBJECTS = {'Математика': 1,
 
 
 def main():
-    db_session.global_init()
     # app.register_blueprint(jobs_api.blueprint)
     # app.register_blueprint(user_api.blueprint)
     api.add_resource(users_resources.UsersListResource, '/api/v2/users')
@@ -122,16 +119,15 @@ def index(subject=None, school_class=None, title=None):
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
 
-    db_sess = db_session.create_session()
-    print(db_session, db_sess, dir(db_session))
-    subjects = [sub.name for sub in db_sess.query(Subjects).all()]
+    print(db.session)
+    subjects = [sub.name for sub in db.session.query(Subjects).all()]
 
-    school_classes = db_sess.query(SchoolClasses).all()
+    school_classes = db.session.query(SchoolClasses).all()
 
     page = request.args.get(get_page_parameter(), type=int, default=1)
     start = (page - 1) * PER_PAGE
     end = start + PER_PAGE
-    olympiads = db_sess.query(Olympiads).all()
+    olympiads = db.session.query(Olympiads).all()
     olympiads = sorted(olympiads, key=lambda olymp: olymp.stages[0].date, reverse=True)
 
     form = SearchOlympiadForm()
@@ -158,10 +154,10 @@ def index(subject=None, school_class=None, title=None):
             print('пользователь не зарегистрирован')
 
     if title:
-        olympiads = db_sess.query(Olympiads).filter(Olympiads.title.like(f'%{title}%')).all()
+        olympiads = db.session.query(Olympiads).filter(Olympiads.title.like(f'%{title}%')).all()
 
     if subject and subject != 'Все предметы':
-        subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
+        subject = db.session.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
         olympiads = subject.olympiads if subject is not None else []
 
     if school_class and school_class != 'Все классы':
@@ -199,8 +195,7 @@ def fav_olymps():
 @app.route("/olympiad/<int:olymp_id>/delete-stage/<int:stage_id>", methods=['GET', 'POST'])
 @app.route("/olympiad/<int:olymp_id>", methods=['GET', 'POST'])
 def olympiad(olymp_id, stage_id=None):
-    db_sess = db_session.create_session()
-    olympiad = db_sess.query(Olympiads).get(olymp_id)
+    olympiad = db.session.query(Olympiads).get(olymp_id)
     favourites = None
     form = SearchOlympiadForm()
 
@@ -208,9 +203,9 @@ def olympiad(olymp_id, stage_id=None):
         favourites = [i.id for i in current_user.olympiads]
 
     if request.path == f'/olympiad/{olymp_id}/delete-stage/{stage_id}':
-        stage = db_sess.query(Stages).filter_by(id=stage_id).first()
-        db_sess.delete(stage)
-        db_sess.commit()
+        stage = db.session.query(Stages).filter_by(id=stage_id).first()
+        db.session.delete(stage)
+        db.session.commit()
         return redirect(f'/olympiad/{olymp_id}')
 
     if request.method == 'POST':
@@ -221,20 +216,20 @@ def olympiad(olymp_id, stage_id=None):
             return redirect(f'/filters/{subs}/{classes}/{title}')
 
         if request.form['submit_button'] == 'Добавить в избранные':
-            user = db_sess.query(Users).filter(Users.email == current_user.email).first()
+            user = db.session.query(Users).filter(Users.email == current_user.email).first()
             user.olympiads.append(olympiad)
-            db_sess.commit()
+            db.session.commit()
         if request.form['submit_button'] == 'Удалить из избранных':
-            user = db_sess.query(Users).filter(Users.email == current_user.email).first()
+            user = db.session.query(Users).filter(Users.email == current_user.email).first()
             user.olympiads.remove(olympiad)
-            db_sess.commit()
+            db.session.commit()
         if request.form['submit_button'] == 'Добавить':
             stage = Stages(
                 name='Этап',
                 olympiad_id=olympiad.id
             )
-            db_sess.add(stage)
-            db_sess.commit()
+            db.session.add(stage)
+            db.session.commit()
         # if request.form['submit_button'] == 'Удалить':
 
         return redirect(f'/olympiad/{olymp_id}')
@@ -260,15 +255,15 @@ def doit(index):
 # @app.route("/subjects/<subject>", methods=['GET', 'POST'])
 # def subject(subject):
 #     url_style = url_for('static', filename='css/style.css')
-#     db_sess = db_session.create_session()
-#     olympiads = db_sess.query(Olympiads).all()
-#     school_classes = db_sess.query(SchoolClasses).all()
+#     db.session = db.sessionion.create_session()
+#     olympiads = db.session.query(Olympiads).all()
+#     school_classes = db.session.query(SchoolClasses).all()
 #     form = SearchOlympiadForm()
 #     form.subject.choices = [(i, sub) for i, sub in enumerate(list(SUBJECTS.keys()))]
 #     form.school_class.choices = [(i, cls) for i, cls in enumerate(school_classes)]
 #     if subject != 'all':
 #         print(subject)
-#         subject = db_sess.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
+#         subject = db.session.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
 #         olympiads = subject.olympiads if subject is not None else []
 #
 #     print(olympiads)
@@ -291,13 +286,12 @@ def register():
             return redirect(f'/filters/{subs}/{classes}/{title}')
 
         if form_login.validate_on_submit():
-            print(post('http://127.0.0.1:5000/api/v2/users',
-                       json={'email': form_login.email.data,
-                             'password': form_login.password.data,
-                             'name': form_login.name.data,
-                             'school_class': form.school_class.data}).json())
-            db_sess = db_session.create_session()
-            user = db_sess.query(Users).filter(Users.email == form_login.email.data).first()
+            json_conf = {'email': form_login.email.data,
+                         'password': form_login.password.data,
+                         'name': form_login.name.data,
+                         'school_class': form.school_class.data}
+            response = registration(json_conf, db.session)
+            user = db.session.query(Users).filter(Users.email == form_login.email.data).first()
             login_user(user)
             return redirect('/')
     return render_template("register.html", url_style=url_style, form_login=form_login, authorization='Регистрация',
@@ -318,8 +312,7 @@ def login():
             return redirect(f'/filters/{subs}/{classes}/{title}')
 
         if form_login.validate_on_submit():
-            db_sess = db_session.create_session()
-            user = db_sess.query(Users).filter(Users.email == form_login.email.data).first()
+            user = db.session.query(Users).filter(Users.email == form_login.email.data).first()
             if user and user.check_password(form_login.password.data):
                 login_user(user, remember=form_login.remember_me.data)
                 if user.email in ADMINS: user.is_admin = True
@@ -334,17 +327,15 @@ def parse_olympiads():
 
 @app.route("/add_user/<int:subj_id>", methods=['GET', 'POST'])
 def add_subj(subj_id):
-    db_sess = db_session.create_session()
-    user = db_sess.query(Users).get(1)
+    user = db.session.query(Users).get(1)
     print(user.olympiads)
     return ','.join(user.olympiads)
 
 
 @app.route("/add_stage/<int:stage_id>", methods=['GET', 'POST'])
 def add_stage(stage_id):
-    db_sess = db_session.create_session()
-    olymp = db_sess.query(Olympiads).get(2)
-    olymp.add_stage(db_sess, 1, datetime.date(year=2010, month=12, day=1))
+    olymp = db.session.query(Olympiads).get(2)
+    olymp.add_stage(db.session, 1, datetime.date(year=2010, month=12, day=1))
     return 'ок'
 
 

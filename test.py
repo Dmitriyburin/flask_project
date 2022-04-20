@@ -1,4 +1,1 @@
-import datetime
-
-a = (datetime.datetime.now().date() - datetime.date(2022, 12, 12)).days
-print(a < 0)
+mysql_engine.execute("CREATE DATABASE IF NOT EXISTS {0}").format(DATABASE)

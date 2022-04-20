@@ -29,6 +29,7 @@ def global_init():
 
     from . import __all_models
 
+
     SqlAlchemyBase.metadata.create_all(engine)
 
 

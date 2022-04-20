@@ -149,9 +149,8 @@ def delete_subject_api(olympiad_id, subject_id):
     return jsonify({'success': 'OK'})
 
 
-def add_olympiad():
+def add_olympiad(session):
     try:
-        session = db_session.create_session()
         olymp = Olympiads(
             title='Пример загаловка олимпиады',
             # school_class=', '.join(olymp_dict['school_class']),
@@ -167,6 +166,7 @@ def add_olympiad():
         session.commit()
         return jsonify({'response': 200, 'success': 'OK', 'olympiad_id': olymp.id})
     except Exception as e:
+        print()
         return jsonify({'response': 0, 'error': str(e)})
 
 

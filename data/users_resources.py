@@ -52,3 +52,20 @@ class UsersListResource(Resource):
         session.add(user)
         session.commit()
         return jsonify({'success': 'OK'})
+
+
+def registration(json_conf, db_session):
+    args = json_conf
+    user = Users(
+        name=args['name'],
+        school_class=args['school_class'],
+        email=args['email']
+
+    )
+    user.set_password(args['password'])
+    db_session.add(user)
+    db_session.commit()
+    return jsonify({'success': 'OK'})
+
+
+

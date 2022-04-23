@@ -1,1 +1,0 @@
-mysql_engine.execute("CREATE DATABASE IF NOT EXISTS {0}").format(DATABASE)

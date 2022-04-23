@@ -1,6 +1,6 @@
 from flask import jsonify
 from flask_restful import abort, Resource
-
+from sqlalchemy.exc import IntegrityError
 from . import db_session
 from .users import Users
 from .user_reqparse import parser
@@ -55,17 +55,21 @@ class UsersListResource(Resource):
 
 
 def registration(json_conf, db_session):
-    args = json_conf
-    user = Users(
-        name=args['name'],
-        school_class=args['school_class'],
-        email=args['email']
+    try:
+        args = json_conf
+        user = Users(
+            name=args['name'],
+            school_class=args['school_class'],
+            email=args['email']
 
-    )
-    user.set_password(args['password'])
-    db_session.add(user)
-    db_session.commit()
-    return jsonify({'success': 'OK'})
-
-
+        )
+        user.set_password(args['password'])
+        db_session.add(user)
+        db_session.commit()
+        return jsonify({'response': 200, 'success': 'OK'})
+    except IntegrityError as e:
+        return jsonify({'response': 1, 'success': 'OK'})
+    except Exception as e:
+        print(e.__class__)
+        return jsonify({'response': 0, 'success': 'OK'})
 

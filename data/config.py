@@ -1,11 +1,8 @@
 import os
 
-from dotenv import load_dotenv
 
-load_dotenv()
-
-USER = 'root'
-PASSWORD = 'admin'
+USER = 'ubuntu'
+PASSWORD = 'ubuntu'
 HOST = 'localhost'
 PORT = '3306'
 DATABASE = 'main'

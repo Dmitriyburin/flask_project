@@ -44,7 +44,7 @@ def main_olimpiada_ru(region_number=78):
         'region': f'{region_number}'
     }
 
-    EXE_PATH = r'C:\Program Files\Google\Chrome\Application\chromedriver\chromedriver.exe'
+    EXE_PATH = r'/usr/bin/chromedriver'
     driver = webdriver.Chrome(executable_path=EXE_PATH)
 
     driver.get('https://olimpiada.ru/activities')

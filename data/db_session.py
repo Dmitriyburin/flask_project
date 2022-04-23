@@ -24,7 +24,7 @@ def global_init():
     # Query for existing databases
     mysql_engine.execute("CREATE DATABASE IF NOT EXISTS {0}".format(DATABASE))
     # Go ahead and use this engine
-    engine = create_engine('mysql://{0}:{1}@{2}:{3}/{4}'.format(USER, PASSWORD, HOST, PORT, DATABASE))
+    engine = create_engine('mysql://{0}:{1}@{2}:{3}/{4}?utf8'.format(USER, PASSWORD, HOST, PORT, DATABASE))
     __factory = orm.sessionmaker(bind=engine)
 
     from . import __all_models

@@ -1,6 +1,6 @@
-import datetime
 import asyncio
 from celery import Celery
+import datetime
 
 from flask import Flask, render_template, url_for, redirect, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -12,6 +12,9 @@ from flask_paginate import Pagination, get_page_parameter
 from flask_admin import Admin, expose, AdminIndexView, helpers
 from flask_admin.contrib.sqlamodel import ModelView
 
+from sqlalchemy import create_engine
+from sqlalchemy_utils import database_exists, create_database
+
 from data import olympiads_resource, users_resources
 from data.olympiads import Olympiads
 from data.users import Users
@@ -20,6 +23,8 @@ from data.olympiads_to_subjects import Subjects
 from data.olympiads_to_class import SchoolClasses
 from data.olympiads_to_stages import Stages
 from data.olympiads_resource import add_olymps_to_database, add_subject_api, delete_subject_api, add_olympiad
+from data.users_resources import registration
+from data.db_session import global_init
 
 from forms.user import RegisterForm, LoginForm
 from forms.search_olympiads import SearchOlympiadForm
@@ -45,9 +50,14 @@ login_manager.init_app(app)
 # celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 # celery.conf.update(app.config)
 
+engine = create_engine("mysql://ubuntu:ubuntu@127.0.0.1/main?charset=utf8")
+if not database_exists(engine.url):
+    create_database(engine.url)
+
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://ubuntu:ubuntu@localhost/main'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://ubuntu:ubuntu@127.0.0.1/main?charset=utf8'
+app.config['JSON_AS_ASCII'] = False
 api = Api(app)
 
 db = SQLAlchemy(app)
@@ -105,7 +115,8 @@ SUBJECTS = {'Математика': 1,
 
 
 def main():
-
+    db_session.global_init() 
+    print(db_session.create_session())
     # app.register_blueprint(jobs_api.blueprint)
     # app.register_blueprint(user_api.blueprint)
     api.add_resource(users_resources.UsersListResource, '/api/v2/users')
@@ -319,11 +330,12 @@ def register():
             return redirect(f'/filters/{subs}/{classes}/{title}')
 
         if form_login.validate_on_submit():
-            print(post('http://127.0.0.1:5000/api/v2/users',
-                       json={'email': form_login.email.data,
+            json_conf = {'email': form_login.email.data,
                              'password': form_login.password.data,
                              'name': form_login.name.data,
-                             'school_class': form.school_class.data}).json())
+                             'school_class': form.school_class.data}
+            print(json_conf)
+            registration(json_conf, db.session)
             user = db.session.query(Users).filter(Users.email == form_login.email.data).first()
             login_user(user)
             return redirect('/')
@@ -356,11 +368,11 @@ def login():
 
 @app.route("/admin/parse", methods=['GET', 'POST'])
 def parse_admin():
-    asyncio.run(add_olymps_to_database())
+    add_olymps_to_database(db.session)
 
 
 def parse_olympiads():
-    asyncio.run(add_olymps_to_database())
+    add_olymps_to_database()
 
 
 @app.route("/add_user/<int:subj_id>", methods=['GET', 'POST'])

@@ -74,15 +74,14 @@ class OlympiadsListResource(Resource):
             link=args['link'],
             date=args['date']
         )
-
-        print(session.add(olymp))
+        
+        session.add(olymp)
         session.commit()
         return jsonify({'success': 'OK'})
 
 
-async def add_olymps_to_database():
-    session = db_session.create_session()
-    olymps = await main()
+def add_olymps_to_database(session):
+    olymps = main()
     print('ОЛИМПИАДЫ', olymps)
     count_success = 0
     for olymp_dict in olymps:
@@ -163,6 +162,7 @@ def add_olympiad(session):
             date=datetime.date(2025, 1, 1),
         )
         olymp.stages.append(stage)
+        session.add(olymp)
         session.commit()
         return jsonify({'response': 200, 'success': 'OK', 'olympiad_id': olymp.id})
     except Exception as e:

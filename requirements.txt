@@ -1,1 +1,22 @@
-Flask Flask-Admin Flask-Login Flask-Migrate flask-paginate Flask-RESTful Flask-SQLAlchemy Flask-WTF bs4 SQLAlchemy SQLAlchemy-serializer Werkzeug WTForms requests PyMySQL mysql-connector-python mysqlclient
+Flask
+Flask-Admin
+Flask-Login
+Flask-Migrate
+flask-paginate
+Flask-RESTful
+Flask-SQLAlchemy
+Flask-WTF
+bs4
+SQLAlchemy
+SQLAlchemy-serializer
+Werkzeug
+WTForms
+requests
+PyMySQL
+mysql-connector-python mysqlclient
+celery
+fake_useragent
+httpx
+setuptools_rust
+selenium-wire
+dotenv

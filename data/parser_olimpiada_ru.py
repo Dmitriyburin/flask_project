@@ -1,5 +1,5 @@
 import requests
-import re
+import traceback
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import asyncio
@@ -59,7 +59,7 @@ def main_olimpiada_ru(region_number=78):
     for request in driver.requests:
         print(request.headers)
     total_height = 100000
-    for i in range(1, total_height, 1500):
+    for i in range(1, total_height, 15):
         driver.execute_script("window.scrollTo(0, {});".format(i))
 
     html = driver.page_source
@@ -69,9 +69,8 @@ def main_olimpiada_ru(region_number=78):
     olympiads_list = []
     for i, olympiad in enumerate(olympiads):
         try:
-
             title = olympiad.find('span', class_='headline').text
-            last_s = olympiad.find('span', class_='headline red').text
+            print('!!!!!', title.upper())
             school_classes = olympiad.find('span', class_='classes_dop').text.split()[0].split('–')
             separate_page = olympiad.find('a', class_='none_a black')['href']
             separate_page_dict, subjects = parse_separate_page(separate_page)
@@ -79,28 +78,38 @@ def main_olimpiada_ru(region_number=78):
             # print(i, {'title': title, 'last': last_s, 'subjects': subjects, 'school_class': school_class,
             #           'separate_page': separate_page,
             #           'description': None})
-
-            olympiads_list.append(
-                {'title': title, 'school_class': list(map(int, school_classes)), 'subject': subjects,
-                 **separate_page_dict}
-            )
+            if {'title': title, 'school_class': list(map(int, school_classes)), 'subject': subjects,
+                **separate_page_dict} not in olympiads_list:
+                olympiads_list.append(
+                    {'title': title, 'school_class': list(map(int, school_classes)), 'subject': subjects,
+                     **separate_page_dict}
+                )
         except Exception as E:
-            print("ОШИБКА ", E)
+            print("ОШИБКА ", traceback.format_exc())
     return olympiads_list
 
 
-def parse_stage(stages):
+def parse_stage(stages, status='active'):
     stages_lst = []
     for stage in stages:
+
         td_stages = stage.find_all('td')
         date = ' '.join(td_stages[1].text.split()).split('...')
         if len(date) == 2:
             date = date[1].split()
         else:
             date = date[0].split()
-        date = datetime.datetime.strptime(f'{date[0]}.{RU_MONTH_VALUES[date[1]]}.2022', "%d.%m.%Y")
+
+        if not status == 'active':
+            date = datetime.datetime.strptime(f'{date[0]}.{RU_MONTH_VALUES[date[1]]}.2021', "%d.%m.%Y")
+        else:
+            date = datetime.datetime.strptime(f'{date[0]}.{RU_MONTH_VALUES[date[1]]}.2022', "%d.%m.%Y")
 
         stages_lst.append({
+            'name': td_stages[0].text,
+            'date': [date]
+        })
+        print({
             'name': td_stages[0].text,
             'date': [date]
         })
@@ -126,20 +135,26 @@ def parse_separate_page(link, region_number=78):
 
     if stages:
         stages_active = soup.find('table', class_='events_for_activity').find_all('tr', class_='notgreyclass')
-        stages_past = soup.find('table', class_='events_for_activity').find_all('tr', class_='gray')
+        stages_past = soup.find('table', class_='events_for_activity').find_all('tr', class_='grey')
         stages = []
+
         stages.extend(stages_active)
-        stages.extend(stages_past)
+        print(stages, stages_past, stages_active)
         if not stages:
             stages.append({
                 'name': 'Точные даты неизвестны',
-                'date': [datetime.datetime.now()]
+                'date': [datetime.datetime(1, 1, 1)]
             })
+        else:
+            stages = []
+            stages.extend(parse_stage(stages_active, 'active'))
+            stages.extend(parse_stage(stages_past, 'past'))
 
     else:
+        stages = []
         stages.append({
             'name': 'Точные даты неизвестны',
-            'date': [datetime.datetime.now()]
+            'date': [datetime.datetime(1, 1, 1)]
         })
 
     contact_link = soup.find_all('div', class_='contacts')[-1]

@@ -12,7 +12,7 @@ from flask_paginate import Pagination, get_page_parameter
 from flask_admin import Admin, expose, AdminIndexView, helpers
 from flask_admin.contrib.sqlamodel import ModelView
 
-from data import olympiads_resource, users_resources
+from data import olympiads_resource, users_resources, db_session
 from data.olympiads import Olympiads
 from data.users import Users
 from data.olympiads_resource import OlympiadsResource, OlympiadsListResource
@@ -20,6 +20,8 @@ from data.olympiads_to_subjects import Subjects
 from data.olympiads_to_class import SchoolClasses
 from data.olympiads_to_stages import Stages
 from data.olympiads_resource import add_olymps_to_database, add_subject_api, delete_subject_api, add_olympiad
+from data.users_resources import registration
+from data.db_session import global_init
 
 from forms.user import RegisterForm, LoginForm
 from forms.search_olympiads import SearchOlympiadForm
@@ -47,7 +49,7 @@ login_manager.init_app(app)
 
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://ubuntu:ubuntu@localhost/main'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:admin@localhost/main'
 api = Api(app)
 
 db = SQLAlchemy(app)
@@ -55,6 +57,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 ADMINS = ['123@123']
+alert = None
 
 
 @login_manager.user_loader
@@ -105,7 +108,7 @@ SUBJECTS = {'Математика': 1,
 
 
 def main():
-
+    global_init()
     # app.register_blueprint(jobs_api.blueprint)
     # app.register_blueprint(user_api.blueprint)
     api.add_resource(users_resources.UsersListResource, '/api/v2/users')
@@ -121,6 +124,7 @@ def main():
 @app.route("/filters/<subject>/<school_class>/<title>", methods=['GET', 'POST'])
 @app.route("/", methods=['GET', 'POST'])
 def index(subject=None, school_class=None, title=None):
+    alert = None
     PER_PAGE = 10
     favourite = False
     modal = False
@@ -138,6 +142,7 @@ def index(subject=None, school_class=None, title=None):
     start = (page - 1) * PER_PAGE
     end = start + PER_PAGE
     olympiads = db.session.query(Olympiads).all()
+
     olympiads = sorted(olympiads, key=lambda olymp: olymp.stages[0].date, reverse=True)
 
     form = SearchOlympiadForm()
@@ -198,7 +203,7 @@ def index(subject=None, school_class=None, title=None):
     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=subjects,
                            current_user=current_user, admins=ADMINS, classes=school_classes, form=form,
                            favourite=favourite, pagination=pagination, url_logo=url_logo, modal=modal,
-                           datetime=datetime.datetime)
+                           datetime=datetime.datetime, alert=alert, list=list)
 
 
 @app.route("/favourite_olympiads")
@@ -223,6 +228,7 @@ def fav_olymps():
 @app.route("/olympiad/<int:olymp_id>/delete-stage/<int:stage_id>", methods=['GET', 'POST'])
 @app.route("/olympiad/<int:olymp_id>", methods=['GET', 'POST'])
 def olympiad(olymp_id, stage_id=None):
+    global alert
     olympiad = db.session.query(Olympiads).get(olymp_id)
     favourites = None
     form = SearchOlympiadForm()
@@ -254,6 +260,7 @@ def olympiad(olymp_id, stage_id=None):
         if request.form['submit_button'] == 'Удалить олимпиаду':
             db.session.delete(olympiad)
             db.session.commit()
+            alert = 'Олимпиада удалена'
             return redirect(url_for(f'index'))
 
         if request.form['submit_button'] == 'Добавить':
@@ -305,6 +312,8 @@ def doit(index):
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
+    alert = None
+
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
 
@@ -319,20 +328,28 @@ def register():
             return redirect(f'/filters/{subs}/{classes}/{title}')
 
         if form_login.validate_on_submit():
-            print(post('http://127.0.0.1:5000/api/v2/users',
-                       json={'email': form_login.email.data,
-                             'password': form_login.password.data,
-                             'name': form_login.name.data,
-                             'school_class': form.school_class.data}).json())
-            user = db.session.query(Users).filter(Users.email == form_login.email.data).first()
-            login_user(user)
-            return redirect('/')
+            json_conf = {'email': form_login.email.data,
+                         'password': form_login.password.data,
+                         'name': form_login.name.data,
+                         'school_class': form.school_class.data}
+            response = registration(json_conf, db.session).json
+            if response['response'] == 200:
+                user = db.session.query(Users).filter(Users.email == form_login.email.data).first()
+                login_user(user)
+                return redirect('/')
+            elif response['response'] == 1:
+                alert = 'Эта почта уже используется'
+            else:
+                alert = 'Некорректный ответ от сервера'
+
     return render_template("register.html", url_style=url_style, form_login=form_login, authorization='Регистрация',
-                           url_logo=url_logo, form=form)
+                           url_logo=url_logo, form=form, alert=alert)
 
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+    alert = None
+
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
     form_login = LoginForm()
@@ -350,17 +367,20 @@ def login():
                 login_user(user, remember=form_login.remember_me.data)
                 if user.email in ADMINS: user.is_admin = True
                 return redirect("/")
+            else:
+                alert = 'Пользователь или пароль некорректны'
     return render_template("register.html", url_style=url_style, form_login=form_login, authorization='Вход',
-                           current_user=current_user, url_logo=url_logo, form=form)
+                           current_user=current_user, url_logo=url_logo, form=form, alert=alert)
 
 
 @app.route("/admin/parse", methods=['GET', 'POST'])
 def parse_admin():
-    asyncio.run(add_olymps_to_database())
+    asyncio.run(add_olymps_to_database(db.session))
+    return redirect("/admin")
 
 
 def parse_olympiads():
-    asyncio.run(add_olymps_to_database())
+    asyncio.run(add_olymps_to_database(db.session))
 
 
 @app.route("/add_user/<int:subj_id>", methods=['GET', 'POST'])

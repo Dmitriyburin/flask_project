@@ -5,9 +5,16 @@
 
 <div class="container">
     <div class="container-register">
+      
+
         <div class="label-register">
-            <p class="p-register">{{ authorization }}</p>
+            <h1 class="h1-register">{{ authorization }}</h1>
         </div>
+        {% if alert %}
+        <div class="alert alert-warning" role="alert">
+          {{ alert }}
+        </div>      
+        {% endif %}
         <form class="row g-3 needs-validation" action="" method="post"  novalidate>
             <div>
                 {{ form_login.csrf_token }}
@@ -21,13 +28,16 @@
                 </div>
 
                 {% endfor %}
-                {{ form_login.submit(class='btn btn-primary', value=authorization)}}
+                {{ form_login.submit(class='btn btn-primary w-100', value=authorization)}}
             </div>
             
         </form>
     </div>
     
 </div>
+<script>
+  $('.toast').toast('show');
+</script>
 <script>
     (() => {
   'use strict';

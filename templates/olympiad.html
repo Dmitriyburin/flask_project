@@ -3,6 +3,10 @@
 {% block content %}
 
 <div class="container olympiad-container">
+    {% if alert %}
+        <div class="alert alert-warning" role="alert">
+    {{ alert }}
+    {% endif %}
     {% set ns = namespace(nearest_stage=None) %}
     {% for stage in stages %}
         {% if stage.date >= datetime.now().date() %}

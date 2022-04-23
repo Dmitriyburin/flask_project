@@ -6,6 +6,11 @@
       <div class="pagination">
         {{ pagination.links }}
       </div>
+      {% if alert %}
+      <div class="alert alert-info" role="alert">
+        {{ alert }}
+      </div>      
+      {% endif %}
       {% if current_user.is_authenticated %}
       {% if current_user.email in admins %}
       <form method="post" action="">
@@ -16,14 +21,21 @@
 
         {% for olymp in olympiads %}
             <div class="card mb-2">
+
+                {% if olymp.school_classes | length > 1 and list(range(olymp.school_classes[0].number, olymp.school_classes[-1].number + 1)) == list(olymp.school_classes | map(attribute='number')) %}
+                {% set classes = [olymp.school_classes[0], olymp.school_classes[-1]] | map(attribute='number') | join('-') %}
+                {% else %}
+                {% set classes = olymp.school_classes | map(attribute='number') | join(',') %}
+                {% endif %}
                 {% if favourite %}
+
                     <div class="card-body card-olymp favourite">
-                        <h6 class="card-subtitle mb-1 text-muted">{{ (olymp.subjects | map(attribute='name')) | join(', ') }} | {{ [olymp.school_classes[0], olymp.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
+                        <h6 class="card-subtitle mb-1 text-muted">{{classes}} класс</h6>
                         <a href='/olympiad/{{ olymp.id }}' class="card-title">{{ olymp.title }}</a>
                     </div>
                 {% else %}
                     <div class="card-body card-olymp">
-                        <h6 class="card-subtitle mb-1 text-muted">{{ (olymp.subjects | map(attribute='name')) | join(', ') }} | {{ [olymp.school_classes[0], olymp.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
+                        <h6 class="card-subtitle mb-1 text-muted">{{ classes }} класс</h6>
                         <a href='/olympiad/{{ olymp.id }}' class="card-title">{{ olymp.title }}</a>
                     </div>
                 {% endif %}

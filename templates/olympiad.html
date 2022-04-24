@@ -34,30 +34,9 @@
     </div>
     {% endif %}
     
-    
-    <div class="row align-items-start justify-content-start">
-        <!-- <div class="col">
-            <div class="card mb-2">
-                <div class="card-body card-olymp">
-            
-                    <h6 class="card-subtitle mb-1 text-muted card-header">{{ (olympiad.subjects | map(attribute='name')) | join(', ') }} | {{ [olympiad.school_classes[0], olympiad.school_classes[-1]] | map(attribute='number') | join('-')}} класс</h6>
-                    <a href='/olympiad/{{ olympiad.id }}' class="card-title">{{ olympiad.title }}</a>
-                    <p class="card-text">{{ olympiad.description}}</p>
-                </div>
-            </div>
-
-        </div> -->
-        <div class="col">
-            <div class="card border border-info shadow-0 mb-3 w-100">
-                <div class="card-header">{{ (olympiad.subjects | map(attribute='name')) | join(', ') }} | {{ [olympiad.school_classes[0], olympiad.school_classes[-1]] | map(attribute='number') | join('-')}} класс</div>
-                <div class="card-body">
-                  <h5 class="card-title">{{ olympiad.title }}</h5>
-                  <a href="{{ olympiad.link }}" class="card-text" target="_blank">Оффициальная ссылка</a>
-                </div>
-              </div>
-        </div>
+    <div class="row">
         {% if stages[0] %}
-        <div class="col">
+        <div class="col-5">
             <div class="card border border-success shadow-0 mb-3 w-100">
                 <div class="card-header">Этапы</div>
                 <div class="card-body card-body-stages">
@@ -66,7 +45,7 @@
 
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="headingOne">
-                              <button
+                                <button
                                 class="accordion-button"
                                 type="button"
                                 data-mdb-toggle="collapse"
@@ -74,7 +53,7 @@
                                 aria-expanded="false"
                                 aria-controls="flush-collapse{{loop.index}}"
                                 
-                              >
+                                >
                                 <div class="ms-2 me-auto">
                                     <a href="" class="fw-450 stages">{{stage.name}}</a> 
                                     {% if stage.description != None%}
@@ -89,7 +68,7 @@
                                 {% endif %}
         
                                 <p class="badge bg-primary rounded-pill fw-normal m-0" data-mdb-toggle="tooltip" title="{{time_tooltip}}">{{ stage.date }}</p>
-                              </button>
+                                </button>
                             </h2>
                             <div
                             id="flush-collapse{{loop.index}}"
@@ -98,12 +77,12 @@
                             data-mdb-parent="#accordionFlushExample"
                             >  
                             {% if current_user.email in admins %}
-                              <div class="accordion-body d-flex">
+                                <div class="accordion-body d-flex">
                                 <a href="/admin/stages/edit/?id={{stage.id}}&url=%2Fadmin%2Fstages%2F" class="btn btn-warning">Редактировать</a>
                                 <a href="/olympiad/{{olympiad.id}}/delete-stage/{{stage.id}}" class="btn btn-danger ml-5">Удалить</a>
                                 
 
-                              </div>
+                                </div>
                             {% endif %}
                             </div>
                         </div>
@@ -118,58 +97,76 @@
                     </ol>
                 </div>
             </div>
+            {% if current_user.is_authenticated %}
+                {% if olympiad.id in favourites %}
+                    <form method="post" action="">
+                        <input type="submit" name="submit_button" class="btn btn-warning" value="Удалить из избранных">
+                    </form>
+                    {% else %}
+                    <form method="post" action="">
+                        <input type="submit" name="submit_button" class="btn btn-warning" value="Добавить в избранные">
+                    </form>
+                {% endif %}
+                {% if current_user.email in admins %}
+                <form method="post" action="">
+                    <input type="submit" name="submit_button" class="btn btn-danger" value="Удалить олимпиаду">
+                </form>
+                    <a href="/admin/olympiads/edit/?id={{olympiad.id}}&url=%2Fadmin%2Folympiads%2F" class="btn btn-warning">Редактировать олимпиаду</a>
+        
+                    
+                {% endif %}
+             {% endif %}
         </div>
         {% endif %}
-    </div>
-    {% if olympiad.description %}
-    <div class="row justify-content-center">
-        <div class="col text-center">
-            <div class="card border border-warning shadow-0 mb-3 w-100">
-                <div class="card-header">История и описание</div>
-                <div class="card-body">
-                  <p class="card-text">{{ olympiad.description}}</p>
+        <div class="col">
+                <div class="row align-items-start justify-content-start">
+                    <div class="col">
+                        <div class="card border border-info shadow-0 mb-3 w-100">
+                            <div class="card-header d-flex align-baseline">
+                            {{ (olympiad.subjects | map(attribute='name')) | join(', ') }} | {{ [olympiad.school_classes[0], olympiad.school_classes[-1]] | map(attribute='number') | join('-')}} класс
+                            </div>
+                            <div class="card-body">
+                            <form method="post" action="">
+                                {% if current_user.is_authenticated %}
+                                
+                                    {% if olympiad.id in favourites %}
+                                        <input name="submit_button" onChange="this.form.submit()" id="toggle-heart" type="checkbox" checked/>
+                                    {% else %}
+                                        <input name="submit_button" onChange="this.form.submit()" id="toggle-heart" type="checkbox"/>
+                                    {% endif %}
+                                    <label for="toggle-heart" aria-label="like">❤</label>
+
+                                {% endif %}
+                            </form>
+                           
+                            <h5 class="card-title">{{ olympiad.title }}</h5>
+                            <a href="{{ olympiad.link }}" class="card-text" target="_blank">Оффициальная ссылка</a></div><br>
+                            </div>
+                        </div>
+                    </div>
+                
+                    {% if olympiad.description %}
+                    <div class="row justify-content-center">
+                        <div class="col text-center">
+                            <div class="card border border-warning shadow-0 mb-3 w-100">
+                                <div class="card-header">История и описание</div>
+                                <div class="card-body">
+                                <p class="card-text">{{ olympiad.description}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
-            </div>
         </div>
+
     </div>
-    {% endif %}
-    
+    <div class="div-for-heart">
 
+    </div>
 
-    <!-- {% if current_user.email in admins %}
-
-    <form action="/process_data/1/" method="POST">
-        <input type="submit" class="btn btn-warning" value="Изменить">
-
-    </form>
-
-    <form action="/process_data/2/" method="POST">
-        <input type="submit" class="btn btn-danger" value="Удалить">
-
-    </form>
-
-    {% endif %} -->
-
-    {% if current_user.is_authenticated %}
-        {% if olympiad.id in favourites %}
-            <form method="post" action="">
-                <input type="submit" name="submit_button" class="btn btn-warning" value="Удалить из избранных">
-            </form>
-            {% else %}
-            <form method="post" action="">
-                <input type="submit" name="submit_button" class="btn btn-warning" value="Добавить в избранные">
-            </form>
-        {% endif %}
-        {% if current_user.email in admins %}
-        <form method="post" action="">
-            <input type="submit" name="submit_button" class="btn btn-danger" value="Удалить олимпиаду">
-        </form>
-            <a href="/admin/olympiads/edit/?id={{olympiad.id}}&url=%2Fadmin%2Folympiads%2F" class="btn btn-warning">Редактировать олимпиаду</a>
-
-            
-        {% endif %}
-    {% endif %}
 </div>
+
 
 
 <script>

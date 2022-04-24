@@ -108,7 +108,7 @@ SUBJECTS = {'Математика': 1,
 
 
 def main():
-    global_init()
+    # global_init()
     # app.register_blueprint(jobs_api.blueprint)
     # app.register_blueprint(user_api.blueprint)
     api.add_resource(users_resources.UsersListResource, '/api/v2/users')
@@ -249,21 +249,25 @@ def olympiad(olymp_id, stage_id=None):
             title = form.title.data
             return redirect(f'/filters/{subs}/{classes}/{title}')
 
-        if request.form['submit_button'] == 'Добавить в избранные':
-            user = db.session.query(Users).filter(Users.email == current_user.email).first()
-            user.olympiads.append(olympiad)
-            db.session.commit()
-        if request.form['submit_button'] == 'Удалить из избранных':
+        if not len(request.form):
             user = db.session.query(Users).filter(Users.email == current_user.email).first()
             user.olympiads.remove(olympiad)
             db.session.commit()
-        if request.form['submit_button'] == 'Удалить олимпиаду':
+        elif request.form['submit_button'] == 'Добавить в избранные' or request.form['submit_button'] == 'on':
+            user = db.session.query(Users).filter(Users.email == current_user.email).first()
+            user.olympiads.append(olympiad)
+            db.session.commit()
+        elif request.form['submit_button'] == 'Удалить из избранных':
+            user = db.session.query(Users).filter(Users.email == current_user.email).first()
+            user.olympiads.remove(olympiad)
+            db.session.commit()
+        elif request.form['submit_button'] == 'Удалить олимпиаду':
             db.session.delete(olympiad)
             db.session.commit()
             alert = 'Олимпиада удалена'
             return redirect(url_for(f'index'))
 
-        if request.form['submit_button'] == 'Добавить':
+        elif request.form['submit_button'] == 'Добавить':
             stage = Stages(
                 name='Этап',
                 olympiad_id=olympiad.id

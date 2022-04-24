@@ -150,8 +150,9 @@ def delete_subject_api(olympiad_id, subject_id):
 
 def add_olympiad(session):
     try:
+        olympiad_id = session.execute('SELECT MAX(id) FROM olympiads_table').first()
         olymp = Olympiads(
-            title='Пример загаловка олимпиады',
+            title=f'Пример загаловка олимпиады {olympiad_id}',
             # school_class=', '.join(olymp_dict['school_class']),
             description='Описание и история олимпиады',
             link='ссылка на олимпиаду',

@@ -19,7 +19,7 @@ class Olympiads(SqlAlchemyBase, SerializerMixin):
                             secondary="olympiads_to_subjects",
                             back_populates="olympiads")
 
-    title = sqlalchemy.Column(sqlalchemy.String(150), nullable=True)
+    title = sqlalchemy.Column(sqlalchemy.String(150), nullable=True, unique=True)
     school_classes = relationship("SchoolClasses",
                                   secondary="olympiads_to_classes",
                                   back_populates="olympiads")

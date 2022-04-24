@@ -155,10 +155,16 @@ form {
 
 
 // Сердце-кнопка
+
+
 .div-for-heart {
-    display: flex;
-    justify-content: center;
-    margin: 0;
+    align-items: center;
+    justify-content: space-between;
+    height: 3.5rem;
+}
+
+.label-heart {
+  margin-top: 1rem;
 }
 
 [id='toggle-heart'] {

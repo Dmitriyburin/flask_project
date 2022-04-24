@@ -57,7 +57,6 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 ADMINS = ['123@123']
-alert = None
 
 
 @login_manager.user_loader
@@ -124,7 +123,6 @@ def main():
 @app.route("/filters/<subject>/<school_class>/<title>", methods=['GET', 'POST'])
 @app.route("/", methods=['GET', 'POST'])
 def index(subject=None, school_class=None, title=None):
-    alert = None
     PER_PAGE = 10
     favourite = False
     modal = False
@@ -200,6 +198,7 @@ def index(subject=None, school_class=None, title=None):
         olympiads = new_olympiads[::]
     pagination = Pagination(page=page, total=len(olympiads))
     olympiads = olympiads[start:end]
+    alert = request.args.get('alert', None)
     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=subjects,
                            current_user=current_user, admins=ADMINS, classes=school_classes, form=form,
                            favourite=favourite, pagination=pagination, url_logo=url_logo, modal=modal,
@@ -228,7 +227,7 @@ def fav_olymps():
 @app.route("/olympiad/<int:olymp_id>/delete-stage/<int:stage_id>", methods=['GET', 'POST'])
 @app.route("/olympiad/<int:olymp_id>", methods=['GET', 'POST'])
 def olympiad(olymp_id, stage_id=None):
-    global alert
+    alert = None
     olympiad = db.session.query(Olympiads).get(olymp_id)
     favourites = None
     form = SearchOlympiadForm()
@@ -249,23 +248,21 @@ def olympiad(olymp_id, stage_id=None):
             title = form.title.data
             return redirect(f'/filters/{subs}/{classes}/{title}')
 
-        if not len(request.form):
+        if not len(request.form) or request.form['submit_button'] == 'Удалить из избранных':
             user = db.session.query(Users).filter(Users.email == current_user.email).first()
             user.olympiads.remove(olympiad)
             db.session.commit()
+            alert = 'Олимпиада удалена из избранных'
         elif request.form['submit_button'] == 'Добавить в избранные' or request.form['submit_button'] == 'on':
             user = db.session.query(Users).filter(Users.email == current_user.email).first()
             user.olympiads.append(olympiad)
             db.session.commit()
-        elif request.form['submit_button'] == 'Удалить из избранных':
-            user = db.session.query(Users).filter(Users.email == current_user.email).first()
-            user.olympiads.remove(olympiad)
-            db.session.commit()
+            alert = 'Олимпиада добавлена в избранные'
         elif request.form['submit_button'] == 'Удалить олимпиаду':
             db.session.delete(olympiad)
             db.session.commit()
             alert = 'Олимпиада удалена'
-            return redirect(url_for(f'index'))
+            return redirect(url_for(f'index', alert=alert))
 
         elif request.form['submit_button'] == 'Добавить':
             stage = Stages(
@@ -276,14 +273,16 @@ def olympiad(olymp_id, stage_id=None):
             db.session.commit()
         # if request.form['submit_button'] == 'Удалить':
 
-        return redirect(f'/olympiad/{olymp_id}')
+        return redirect(url_for('olympiad', olymp_id=olymp_id, alert=alert))
 
     olympiad.stages.sort(key=lambda x: x.date)
     stages = list(reversed(olympiad.stages))
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
+    alert = request.args.get('alert', None)
+    print(alert)
     return render_template("olympiad.html", olympiad=olympiad, url_style=url_style, admins=ADMINS, stages=stages,
-                           favourites=favourites, url_logo=url_logo, datetime=datetime.datetime, form=form)
+                           favourites=favourites, url_logo=url_logo, datetime=datetime.datetime, form=form, alert=alert)
 
 
 @app.route('/process_data/<int:index>/', methods=['POST'])
@@ -352,7 +351,6 @@ def register():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    alert = None
 
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')

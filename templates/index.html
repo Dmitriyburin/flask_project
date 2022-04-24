@@ -3,14 +3,16 @@
 {% block main_content %}
             
     <div class="col main-content">
+      {% if alert %}
+      <div id='main-alert' class="alert alert-info alert-dismissible" role="alert">
+        {{ alert }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endif %}
       <div class="pagination">
         {{ pagination.links }}
       </div>
-      {% if alert %}
-      <div class="alert alert-info" role="alert">
-        {{ alert }}
-      </div>      
-      {% endif %}
+
       {% if current_user.is_authenticated %}
       {% if current_user.email in admins %}
       <form method="post" action="">
@@ -30,12 +32,12 @@
                 {% if favourite %}
 
                     <div class="card-body card-olymp favourite">
-                        <h6 class="card-subtitle mb-1 text-muted">{{classes}} класс</h6>
+                        <h6 class="card-subtitle mb-1 text-muted">{{ (olymp.subjects | map(attribute='name')) | join(', ') }} | {{classes}} класс</h6>
                         <a href='/olympiad/{{ olymp.id }}' class="card-title">{{ olymp.title }}</a>
                     </div>
                 {% else %}
                     <div class="card-body card-olymp">
-                        <h6 class="card-subtitle mb-1 text-muted">{{ classes }} класс</h6>
+                        <h6 class="card-subtitle mb-1 text-muted">{{ (olymp.subjects | map(attribute='name')) | join(', ') }} | {{ classes }} класс</h6>
                         <a href='/olympiad/{{ olymp.id }}' class="card-title">{{ olymp.title }}</a>
                     </div>
                 {% endif %}

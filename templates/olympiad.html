@@ -4,8 +4,10 @@
 
 <div class="container olympiad-container">
     {% if alert %}
-        <div class="alert alert-warning" role="alert">
-    {{ alert }}
+    <div id='main-alert' class="alert alert-info alert-dismissible" role="alert">
+      {{ alert }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     {% endif %}
     {% set ns = namespace(nearest_stage=None) %}
     {% for stage in stages %}
@@ -122,10 +124,9 @@
                 <div class="row align-items-start justify-content-start">
                     <div class="col">
                         <div class="card border border-info shadow-0 mb-3 w-100">
-                            <div class="card-header d-flex align-baseline">
-                            {{ (olympiad.subjects | map(attribute='name')) | join(', ') }} | {{ [olympiad.school_classes[0], olympiad.school_classes[-1]] | map(attribute='number') | join('-')}} класс
-                            </div>
-                            <div class="card-body">
+                            <div class="card-header d-flex div-for-heart">
+                            
+                                {{ (olympiad.subjects | map(attribute='name')) | join(', ') }} | {{ [olympiad.school_classes[0], olympiad.school_classes[-1]] | map(attribute='number') | join('-')}} класс
                             <form method="post" action="">
                                 {% if current_user.is_authenticated %}
                                 
@@ -134,10 +135,14 @@
                                     {% else %}
                                         <input name="submit_button" onChange="this.form.submit()" id="toggle-heart" type="checkbox"/>
                                     {% endif %}
-                                    <label for="toggle-heart" aria-label="like">❤</label>
+                                    <label class='label-heart' for="toggle-heart" aria-label="like">❤</label>
 
                                 {% endif %}
                             </form>
+                        
+                            </div>
+                            <div class="card-body">
+                           
                            
                             <h5 class="card-title">{{ olympiad.title }}</h5>
                             <a href="{{ olympiad.link }}" class="card-text" target="_blank">Оффициальная ссылка</a></div><br>
@@ -161,13 +166,29 @@
         </div>
 
     </div>
-    <div class="div-for-heart">
 
-    </div>
 
 </div>
 
 
+
+<script>
+    var alertPlaceholder = document.getElementById('liveAlertPlaceholder')
+    var alertTrigger = document.getElementById('liveAlertBtn')
+
+    function alert(message, type) {
+    var wrapper = document.createElement('div')
+    wrapper.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible" role="alert">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'
+
+    alertPlaceholder.append(wrapper)
+    }
+
+    if (alertTrigger) {
+    alertTrigger.addEventListener('click', function () {
+        alert('Отлично, вы запустили это предупреждающее сообщение!', 'success')
+    })
+}
+</script>
 
 <script>
     var lastMessage = document.querySelector('.toast:last-child');

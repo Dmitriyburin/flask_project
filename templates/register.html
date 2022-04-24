@@ -11,9 +11,11 @@
             <h1 class="h1-register">{{ authorization }}</h1>
         </div>
         {% if alert %}
-        <div class="alert alert-warning" role="alert">
+        <div class="alert alert-info alert-dismissible" role="alert">
           {{ alert }}
-        </div>      
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
         {% endif %}
         <form class="row g-3 needs-validation" action="" method="post"  novalidate>
             <div>

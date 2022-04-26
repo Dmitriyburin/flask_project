@@ -351,7 +351,7 @@ def register():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-
+    alert = None
     url_style = url_for('static', filename='css/style.css')
     url_logo = url_for('static', filename='img/logo.jpg')
     form_login = LoginForm()

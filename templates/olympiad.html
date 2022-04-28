@@ -26,7 +26,11 @@
     <div class="row align-items-start justify-content-start">
         <div class="col">
             {% set time_tooltip = (olympiad.stages[0].date - datetime.now().date()).days %}
-            {% if time_tooltip < 0 %}
+            {% if olympiad.stages[0].date == date(1, 1, 1)%}
+            <div class="alert alert-success" role="alert">
+                Точные даты проведения неизвестны
+            </div>
+            {% elif time_tooltip < 0 %}
             <div class="alert alert-danger" role="alert">
                 Олимпиада завершена!
             </div>
@@ -78,7 +82,7 @@
                             aria-labelledby="flush-headingOne"
                             data-mdb-parent="#accordionFlushExample"
                             >  
-                            {% if current_user.email in admins %}
+                            {% if (current_user.id,) in admins%}
                                 <div class="accordion-body d-flex">
                                 <a href="/admin/stages/edit/?id={{stage.id}}&url=%2Fadmin%2Fstages%2F" class="btn btn-warning">Редактировать</a>
                                 <a href="/olympiad/{{olympiad.id}}/delete-stage/{{stage.id}}" class="btn btn-danger ml-5">Удалить</a>
@@ -91,7 +95,7 @@
 
                         
                         {% endfor %}
-                        {% if current_user.email in admins %}
+                        {% if (current_user.id,) in admins %}
                         <form method="post" action="">
                             <input href="" type="submit" name="submit_button" class="btn btn-success w-100" value="Добавить">
                         </form>
@@ -109,7 +113,7 @@
                         <input type="submit" name="submit_button" class="btn btn-warning" value="Добавить в избранные">
                     </form>
                 {% endif %}
-                {% if current_user.email in admins %}
+                {% if (current_user.id,) in admins %}
                 <form method="post" action="">
                     <input type="submit" name="submit_button" class="btn btn-danger" value="Удалить олимпиаду">
                 </form>

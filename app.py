@@ -15,6 +15,7 @@ from flask_admin.contrib.sqlamodel import ModelView
 from data import olympiads_resource, users_resources, db_session
 from data.olympiads import Olympiads
 from data.users import Users
+from data.admins import Admins
 from data.olympiads_resource import OlympiadsResource, OlympiadsListResource
 from data.olympiads_to_subjects import Subjects
 from data.olympiads_to_class import SchoolClasses
@@ -25,6 +26,7 @@ from data.db_session import global_init
 
 from forms.user import RegisterForm, LoginForm
 from forms.search_olympiads import SearchOlympiadForm
+from forms.add_admin import AddOlympForm
 
 from requests import get, post
 
@@ -73,12 +75,29 @@ def logout():
 
 class MyAdminIndexView(AdminIndexView):
 
-    @expose('/')
+    @expose('/', methods=('GET', 'POST'))
     def index(self):
         if not current_user.is_authenticated:
             return redirect('/login')
-        if current_user.email not in ADMINS:
+        print(db.session.query(Admins.user_id).all())
+        if (current_user.id,) not in db.session.query(Admins.user_id).all():
             return redirect('/')
+
+        form = AddOlympForm()
+        if request.method == 'POST':
+            if form.validate_on_submit():
+                user = db.session.query(Users).filter(Users.email == form.email.data).first()
+                alert = 'Ошибка добавления администратора'
+                try:
+                    if user:
+                        admin = Admins(user_id=user.id)
+                        db.session.add(admin)
+                        db.session.commit()
+                        alert = 'Администратор успешно добавлен'
+                except Exception:
+                    alert = 'Ошибка добавления администратора'
+                self._template_args['alert'] = alert
+        self._template_args['form'] = form
         return super(MyAdminIndexView, self).index()
 
 
@@ -123,86 +142,107 @@ def main():
 @app.route("/filters/<subject>/<school_class>/<title>", methods=['GET', 'POST'])
 @app.route("/", methods=['GET', 'POST'])
 def index(subject=None, school_class=None, title=None):
-    PER_PAGE = 10
-    favourite = False
-    modal = False
+    try:
+        print(db.session.query(Users).get(1))
+        PER_PAGE = 10
+        favourite = False
+        modal = False
 
-    url_style = url_for('static', filename='css/style.css')
-    url_logo = url_for('static', filename='img/logo.jpg')
+        url_style = url_for('static', filename='css/style.css')
+        url_logo = url_for('static', filename='img/logo.jpg')
 
-    # my_background_task.delay()
-    # asyncio.run(add_olymps_to_database())
-    subjects = [sub.name for sub in db.session.query(Subjects).all()]
+        # my_background_task.delay()
+        # asyncio.run(add_olymps_to_database())
+        subjects = [sub.name for sub in db.session.query(Subjects).all()]
 
-    school_classes = db.session.query(SchoolClasses).all()
+        school_classes = db.session.query(SchoolClasses).all()
 
-    page = request.args.get(get_page_parameter(), type=int, default=1)
-    start = (page - 1) * PER_PAGE
-    end = start + PER_PAGE
-    olympiads = db.session.query(Olympiads).all()
+        page = request.args.get(get_page_parameter(), type=int, default=1)
+        start = (page - 1) * PER_PAGE
+        end = start + PER_PAGE
+        olympiads = db.session.query(Olympiads).all()
 
-    olympiads = sorted(olympiads, key=lambda olymp: olymp.stages[0].date, reverse=True)
+        form = SearchOlympiadForm()
+        form.subject.choices = [(sub, sub) for i, sub in enumerate(['Все предметы'] + subjects)]
+        form.school_class.choices = [(cls, cls) for i, cls in enumerate(['Все классы'] + school_classes)]
 
-    form = SearchOlympiadForm()
-    form.subject.choices = [(sub, sub) for i, sub in enumerate(['Все предметы'] + subjects)]
-    form.school_class.choices = [(cls, cls) for i, cls in enumerate(['Все классы'] + school_classes)]
+        if request.method == 'POST':
+            if form.validate_on_submit():
+                subs = form.subject.data
+                classes = form.school_class.data
+                title = form.title.data if form.title.data is not None else ''
+                date_olympiad = form.date.data
+                date_option = int(form.date_option.data)
+                return redirect(url_for(f'index', subject=subs, school_class=classes, title=title, date=date_olympiad,
+                                        date_option=date_option))
+            elif form.title.data:
+                subs = "Все предметы"
+                classes = "Все классы"
+                title = form.title.data if form.title.data is not None else ''
+                return redirect(url_for(f'index', subject=subs, school_class=classes, title=title))
 
-    if request.method == 'POST':
-        if form.validate_on_submit():
-            subs = form.subject.data
-            classes = form.school_class.data
-            title = form.title.data if form.title.data is not None else ''
-            date_olympiad = form.date.data
-            date_option = int(form.date_option.data)
-            return redirect(url_for(f'index', subject=subs, school_class=classes, title=title, date=date_olympiad,
-                                    date_option=date_option))
-        elif form.title.data:
-            subs = "Все предметы"
-            classes = "Все классы"
-            title = form.title.data if form.title.data is not None else ''
-            return redirect(url_for(f'index', subject=subs, school_class=classes, title=title))
+            elif request.form.get('submit_button', None) == 'Добавить олимпиаду':
+                response = add_olympiad(db.session).json
+                if response['response'] == 200:
+                    print('ok')
+                    olympiad_id = response['olympiad_id']
+                    return redirect(url_for(f'olympiad', olymp_id=olympiad_id))
 
-        elif request.form['submit_button'] == 'Добавить олимпиаду':
-            response = add_olympiad(db.session).json
-            if response['response'] == 200:
-                olympiad_id = response['olympiad_id']
-                return redirect(url_for(f'olympiad', olymp_id=olympiad_id))
+        if request.path == '/favourite_olympiads':
+            if current_user.is_authenticated:
+                favourite = True
+                olympiads = current_user.olympiads
+            else:
+                print('пользователь не зарегистрирован')
 
-    if request.path == '/favourite_olympiads':
-        if current_user.is_authenticated:
-            favourite = True
-            olympiads = current_user.olympiads
-        else:
-            print('пользователь не зарегистрирован')
+        if title:
+            olympiads = db.session.query(Olympiads).filter(Olympiads.title.like(f'%{title}%')).all()
 
-    if title:
-        olympiads = db.session.query(Olympiads).filter(Olympiads.title.like(f'%{title}%')).all()
+        if subject and subject != 'Все предметы':
+            subject = db.session.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
+            olympiads = subject.olympiads if subject is not None else []
 
-    if subject and subject != 'Все предметы':
-        subject = db.session.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
-        olympiads = subject.olympiads if subject is not None else []
+        if school_class and school_class != 'Все классы':
+            olympiads = list(filter(lambda x:
+                                    int(school_class) in [int(el.number) for el in x.school_classes], olympiads))
 
-    if school_class and school_class != 'Все классы':
-        olympiads = list(filter(lambda x:
-                                int(school_class) in [int(el.number) for el in x.school_classes], olympiads))
+        if request.args.get('date') and int(request.args.get('date_option')):
+            form_date = datetime.datetime.strptime(request.args.get('date'), '%Y-%m-%d').date()
+            # olympiads = list(filter(lambda x: any([form_date >= stage.date for stage in x.stages]), olympiads))
+            new_olympiads = []
+            for olympiad in olympiads:
+                for stage in olympiad.stages:
+                    if form_date >= stage.date:
+                        new_olympiads.append(olympiad)
+                        break
+            olympiads = new_olympiads[::]
 
-    if request.args.get('date') and int(request.args.get('date_option')):
-        form_date = datetime.datetime.strptime(request.args.get('date'), '%Y-%m-%d').date()
-        # olympiads = list(filter(lambda x: any([form_date >= stage.date for stage in x.stages]), olympiads))
-        new_olympiads = []
-        for olympiad in olympiads:
-            for stage in olympiad.stages:
-                if form_date >= stage.date:
-                    new_olympiads.append(olympiad)
-                    break
-        olympiads = new_olympiads[::]
-    pagination = Pagination(page=page, total=len(olympiads))
-    olympiads = olympiads[start:end]
-    alert = request.args.get('alert', None)
-    return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=subjects,
-                           current_user=current_user, admins=ADMINS, classes=school_classes, form=form,
-                           favourite=favourite, pagination=pagination, url_logo=url_logo, modal=modal,
-                           datetime=datetime.datetime, alert=alert, list=list)
+        olympiads = sorted(olympiads, key=lambda olymp: sorted(list(map(lambda x: x.date, olymp.stages)))[-1],
+                           reverse=True)
+        olympiads_active = list(
+            filter(
+                lambda olymp: sorted(list(map(lambda x: x.date, olymp.stages)))[-1] >= datetime.datetime.now().date(),
+                olympiads))
+        olympiads_unknown = list(
+            filter(lambda olymp: sorted(list(map(lambda x: x.date, olymp.stages)))[-1] == datetime.date(1, 1, 1),
+                   olympiads))
+        olympiads_past = list(
+            filter(lambda olymp: sorted(list(map(lambda x: x.date, olymp.stages)))[
+                                     -1] < datetime.datetime.now().date() and olymp not in olympiads_unknown,
+                   olympiads))
+        olympiads = olympiads_active + olympiads_unknown + olympiads_past
+
+        pagination = Pagination(page=page, total=len(olympiads))
+        olympiads = olympiads[start:end]
+        alert = request.args.get('alert', None)
+        return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=subjects,
+                               current_user=current_user, admins=db.session.query(Admins.user_id).all(),
+                               classes=school_classes, form=form,
+                               favourite=favourite, pagination=pagination, url_logo=url_logo, modal=modal,
+                               datetime=datetime.datetime, date=datetime.date, alert=alert, list=list)
+    except Exception as E:
+        db.session.rollback()
+        return redirect('/')
 
 
 @app.route("/favourite_olympiads")
@@ -221,7 +261,8 @@ def fav_olymps():
 
         olympiads = current_user.olympiads
         return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS,
-                               current_user=current_user, admins=ADMINS, favourite=True, url_logo=url_logo, form=form)
+                               current_user=current_user, admins=db.session.query(Admins.user_id).all(), favourite=True,
+                               url_logo=url_logo, form=form)
 
 
 @app.route("/olympiad/<int:olymp_id>/delete-stage/<int:stage_id>", methods=['GET', 'POST'])
@@ -281,8 +322,11 @@ def olympiad(olymp_id, stage_id=None):
     url_logo = url_for('static', filename='img/logo.jpg')
     alert = request.args.get('alert', None)
     print(alert)
-    return render_template("olympiad.html", olympiad=olympiad, url_style=url_style, admins=ADMINS, stages=stages,
-                           favourites=favourites, url_logo=url_logo, datetime=datetime.datetime, form=form, alert=alert)
+
+    return render_template("olympiad.html", olympiad=olympiad, url_style=url_style,
+                           admins=db.session.query(Admins.user_id).all(), stages=stages,
+                           favourites=favourites, url_logo=url_logo, datetime=datetime.datetime, date=datetime.date,
+                           form=form, alert=alert)
 
 
 @app.route('/process_data/<int:index>/', methods=['POST'])
@@ -293,24 +337,6 @@ def doit(index):
         print('УДАЛИТЬ ОЛИМПИАДУ')
 
     return 'ок'
-
-
-# @app.route("/subjects/<subject>", methods=['GET', 'POST'])
-# def subject(subject):
-#     url_style = url_for('static', filename='css/style.css')
-#     db_sess = db_session.create_session()
-#     olympiads = db.session.query(Olympiads).all()
-#     school_classes = db.session.query(SchoolClasses).all()
-#     form = SearchOlympiadForm()
-#     form.subject.choices = [(i, sub) for i, sub in enumerate(list(SUBJECTS.keys()))]
-#     form.school_class.choices = [(i, cls) for i, cls in enumerate(school_classes)]
-#     if subject != 'all':
-#         print(subject)
-#         subject = db.session.query(Subjects).filter(Subjects.name.like(f'%{subject}%')).first()
-#         olympiads = subject.olympiads if subject is not None else []
-#
-#     print(olympiads)
-#     return render_template("index.html", olympiads=olympiads, url_style=url_style, subjects=SUBJECTS, form=form)
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -336,6 +362,7 @@ def register():
                          'name': form_login.name.data,
                          'school_class': form.school_class.data}
             response = registration(json_conf, db.session).json
+
             if response['response'] == 200:
                 user = db.session.query(Users).filter(Users.email == form_login.email.data).first()
                 login_user(user)
@@ -375,9 +402,24 @@ def login():
                            current_user=current_user, url_logo=url_logo, form=form, alert=alert)
 
 
+@app.route("/user-delete", methods=['GET', 'POST'])
+def user_delete():
+    user = db.session.query(Users).filter(Users.email == current_user.email).first()
+    admin = db.session.query(Admins).filter(Admins.user_id == current_user.id).first()
+
+    print(admin)
+    logout_user()
+    if admin:
+        db.session.delete(admin)
+    db.session.delete(user)
+    db.session.commit()
+    alert = 'Пользователь успешно удален'
+    return redirect(url_for('index', alert=alert))
+
+
 @app.route("/admin/parse", methods=['GET', 'POST'])
 def parse_admin():
-    asyncio.run(add_olymps_to_database(db.session))
+    add_olymps_to_database(db.session)
     return redirect("/admin")
 
 

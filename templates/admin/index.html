@@ -1,6 +1,23 @@
 {% extends 'admin/master.html' %}
 {% block body %}
 <div class=""></div>
-
+{% if alert %}
+    <div id='main-alert' class="alert alert-info alert-dismissible" role="alert">
+      {{ alert }}
+    </div>
+{% endif %}
 <a href="/admin/parse" class="btn btn-danger">Парсинг олимпиад</a>
+
+<form action="" method="post" onsubmit="submitForm()" novalidate>
+    <div>
+        {{ form.csrf_token }}
+    </div>
+    
+    <p style="margin-top: 20px ;">
+        <button class="btn btn-primary w-100" type="submit">Добавить администратора</button>
+    </p>
+    <p>
+        {{ form.email(class='form-select mt-10', placeholder='Email')}}
+    </p>
+</form>
 {% endblock %}

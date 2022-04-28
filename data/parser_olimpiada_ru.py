@@ -44,7 +44,7 @@ def main_olimpiada_ru(region_number=78):
         'region': f'{region_number}'
     }
 
-    EXE_PATH = r'/usr/bin/chromedriver'
+    EXE_PATH = r'C:\Program Files\Google\Chrome\Application\chromedriver\chromedriver.exe'
     driver = webdriver.Chrome(executable_path=EXE_PATH)
 
     driver.get('https://olimpiada.ru/activities')
@@ -68,6 +68,7 @@ def main_olimpiada_ru(region_number=78):
     olympiads = soup.find('div', id='megalist').find_all('div', class_='olimpiada')
     olympiads_list = []
     for i, olympiad in enumerate(olympiads):
+        print(i)
         try:
             title = olympiad.find('span', class_='headline').text
             print('!!!!!', title.upper())
@@ -84,6 +85,8 @@ def main_olimpiada_ru(region_number=78):
                     {'title': title, 'school_class': list(map(int, school_classes)), 'subject': subjects,
                      **separate_page_dict}
                 )
+                print({'title': title, 'school_class': list(map(int, school_classes)), 'subject': subjects,
+                       **separate_page_dict})
         except Exception as E:
             print("ОШИБКА ", traceback.format_exc())
     return olympiads_list
@@ -100,18 +103,13 @@ def parse_stage(stages, status='active'):
         else:
             date = date[0].split()
 
-        if not status == 'active':
-            date = datetime.datetime.strptime(f'{date[0]}.{RU_MONTH_VALUES[date[1]]}.2021', "%d.%m.%Y")
-        else:
-            date = datetime.datetime.strptime(f'{date[0]}.{RU_MONTH_VALUES[date[1]]}.2022', "%d.%m.%Y")
+        date_answer = datetime.datetime.strptime(f'{date[0]}.{RU_MONTH_VALUES[date[1]]}.2022', "%d.%m.%Y")
+        if not status == 'active' and (date_answer >= datetime.datetime.now()):
+            date_answer = datetime.datetime.strptime(f'{date[0]}.{RU_MONTH_VALUES[date[1]]}.2021', "%d.%m.%Y")
 
         stages_lst.append({
             'name': td_stages[0].text,
-            'date': [date]
-        })
-        print({
-            'name': td_stages[0].text,
-            'date': [date]
+            'date': [date_answer]
         })
     return stages_lst
 
@@ -139,7 +137,7 @@ def parse_separate_page(link, region_number=78):
         stages = []
 
         stages.extend(stages_active)
-        print(stages, stages_past, stages_active)
+        stages.extend(stages_past)
         if not stages:
             stages.append({
                 'name': 'Точные даты неизвестны',

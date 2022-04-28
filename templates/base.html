@@ -63,6 +63,26 @@ integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4
         </div>
       </div>
 
+      <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="favouriteModalLabel" aria-hidden="true" data-backdrop="false">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="favouriteModalLabel">Вы уверены, что хотите удалить аккаунт?</h5>
+              <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <div>
+                <a href="/user-delete" type="button" class="btn btn-primary px-3 me-2 ">
+                  Да
+                </a>
+              </div>
+
+              <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Закрыть</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
         <header>
           <!-- Navbar -->
           <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
@@ -153,14 +173,12 @@ integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4
                     class="dropdown-menu dropdown-menu-end"
                     aria-labelledby="navbarDropdownMenuAvatar"
                   >
-                    <li>
-                      <a class="dropdown-item" href="/">My profile</a>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="/">Settings</a>
-                    </li>
+                   
                     <li>
                       <a class="dropdown-item" href="/logout">Logout</a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item btn-outline-danger" data-mdb-toggle="modal" data-mdb-target="#deleteUserModal">Delete account</a>
                     </li>
                   </ul>
                 </li>
